@@ -1,0 +1,31 @@
+erDiagram
+  beneficiaries {
+    text beneficiary_id PK
+  }
+  daycare_attendance {
+    uuid attendance_id PK
+  }
+  daycare_quarterly {
+    uuid daycare_quarterly_id PK
+  }
+  homecare_monthly {
+    uuid homecare_monthly_id PK
+  }
+  hospital_children {
+    text hospital_child_id PK
+  }
+  hospital_session_feedback {
+    uuid hospital_session_feedback_id PK
+  }
+  rosenberg_assessment_history {
+    uuid rosenberg_assessment_id PK
+  }
+  stirling_assessment_history {
+    uuid stirling_assessment_id PK
+  }
+  beneficiaries ||--o{ daycare_attendance : "beneficiary_id"
+  beneficiaries ||--o{ daycare_quarterly : "beneficiary_id"
+  beneficiaries ||--o{ homecare_monthly : "beneficiary_id"
+  hospital_children ||--o{ hospital_session_feedback : "hospital_child_id"
+  beneficiaries ||--o{ rosenberg_assessment_history : "beneficiary_id"
+  beneficiaries ||--o{ stirling_assessment_history : "beneficiary_id"

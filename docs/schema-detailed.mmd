@@ -1,0 +1,267 @@
+erDiagram
+  beneficiaries {
+    text beneficiary_id "NOT NULL; PK"
+    date registration_date
+    text name_of_child
+    program_enum program "ENUM Daycare|Homecare"
+    text primary_diagnosis
+    text sub_diagnosis
+    text gender
+    text level_of_care
+    text location
+    text address
+    date date_of_birth
+    int age
+    text primary_mobile_no
+    text secondary_mobile_no
+    text current_status_life_goals
+    date life_goals_discontinued_date
+    text family_occupation
+    text family_members
+    text interested_in_daycare_program
+    hospital_enum hospital "ENUM Metro Care Hospital A|Metro Care Hospital B|Metro Care Hospital C|Metro Care Hospital D"
+    ward_enum ward_department "ENUM General Ward|Hematology Ward|Pediatric Ward|Ward A|Ward B"
+    status_enum status "ENUM Active|Deceased"
+    date exit_date
+    text job_description
+    text financially_independent
+    numeric salary_per_month
+    text notes
+    text source_used
+    boolean verification_from_goalkeep
+    boolean verification_from_hfh
+    text doubt_from_goalkeep
+    text hfh_comments
+    text source_file "NOT NULL; UNIQUE (source_file,source_sheet,source_row)"
+    text source_sheet "NOT NULL; UNIQUE (source_file,source_sheet,source_row)"
+    int source_row "NOT NULL; UNIQUE (source_file,source_sheet,source_row)"
+  }
+  daycare_attendance {
+    uuid attendance_id "NOT NULL; PK"
+    text beneficiary_id "NOT NULL; FK to beneficiaries.beneficiary_id"
+    text financial_year
+    month_enum month "ENUM January|February|March|April|May|June|July|August|September|October|November|December"
+    attendance_code_enum day_01 "ENUM P|NA"
+    attendance_code_enum day_02 "ENUM P|NA"
+    attendance_code_enum day_03 "ENUM P|NA"
+    attendance_code_enum day_04 "ENUM P|NA"
+    attendance_code_enum day_05 "ENUM P|NA"
+    attendance_code_enum day_06 "ENUM P|NA"
+    attendance_code_enum day_07 "ENUM P|NA"
+    attendance_code_enum day_08 "ENUM P|NA"
+    attendance_code_enum day_09 "ENUM P|NA"
+    attendance_code_enum day_10 "ENUM P|NA"
+    attendance_code_enum day_11 "ENUM P|NA"
+    attendance_code_enum day_12 "ENUM P|NA"
+    attendance_code_enum day_13 "ENUM P|NA"
+    attendance_code_enum day_14 "ENUM P|NA"
+    attendance_code_enum day_15 "ENUM P|NA"
+    attendance_code_enum day_16 "ENUM P|NA"
+    attendance_code_enum day_17 "ENUM P|NA"
+    attendance_code_enum day_18 "ENUM P|NA"
+    attendance_code_enum day_19 "ENUM P|NA"
+    attendance_code_enum day_20 "ENUM P|NA"
+    attendance_code_enum day_21 "ENUM P|NA"
+    attendance_code_enum day_22 "ENUM P|NA"
+    attendance_code_enum day_23 "ENUM P|NA"
+    attendance_code_enum day_24 "ENUM P|NA"
+    attendance_code_enum day_25 "ENUM P|NA"
+    attendance_code_enum day_26 "ENUM P|NA"
+    attendance_code_enum day_27 "ENUM P|NA"
+    attendance_code_enum day_28 "ENUM P|NA"
+    attendance_code_enum day_29 "ENUM P|NA"
+    attendance_code_enum day_30 "ENUM P|NA"
+    attendance_code_enum day_31 "ENUM P|NA"
+    int total_present
+    boolean had_access_to_4_meals_a_day
+    text notes
+    text source_used
+    boolean verification_from_goalkeep
+    boolean verification_from_hfh
+    text doubt_from_goalkeep
+    text hfh_comments
+    text source_file "NOT NULL; UNIQUE (source_file,source_sheet,source_row)"
+    text source_sheet "NOT NULL; UNIQUE (source_file,source_sheet,source_row)"
+    int source_row "NOT NULL; UNIQUE (source_file,source_sheet,source_row)"
+    text name_of_child
+  }
+  daycare_quarterly {
+    uuid daycare_quarterly_id "NOT NULL; PK"
+    text beneficiary_id "NOT NULL; FK to beneficiaries.beneficiary_id"
+    text name_of_child
+    text financial_year
+    quarter_enum quarter "ENUM Q1|Q2|Q3|Q4"
+    text diagnosis
+    date grocery_support_required_date
+    date grocery_support_provided_date
+    date medicine_support_required_date
+    date medicine_support_provided_date
+    date one_to_one_therapy_required_date
+    date one_to_one_therapy_provided_date
+    date intensive_intervention_psychiatric_medicines_required_date
+    date intensive_intervention_psychiatric_medicines_provided_date
+    date educational_support_required_date
+    date educational_provided_required_date
+    numeric height_in_cm
+    numeric weight_in_kg
+    numeric cd4_for_hiv_children
+    text viral_load_for_hiv
+    int no_of_blood_transfusions_in_a_month
+    text hospital_admissions_in_quarter
+    text current_status_education
+    text school_college_fees_tuition
+    text extracurricular_support
+    text home_schooling_tuition
+    text life_skill_empowerment_session_at_hfh
+    text english_speaking_session
+    text extracurricular_activities
+    text celebration_exposure
+    status_enum life_status "ENUM Active|Deceased"
+    date exit_date
+    text basic_necessities
+    text notes
+    text source_used
+    boolean verification_from_goalkeep
+    boolean verification_from_hfh
+    text doubt_from_goalkeep
+    text hfh_comments
+    text source_file "NOT NULL; UNIQUE (source_file,source_sheet,source_row)"
+    text source_sheet "NOT NULL; UNIQUE (source_file,source_sheet,source_row)"
+    int source_row "NOT NULL; UNIQUE (source_file,source_sheet,source_row)"
+  }
+  homecare_monthly {
+    uuid homecare_monthly_id "NOT NULL; PK"
+    text beneficiary_id "NOT NULL; FK to beneficiaries.beneficiary_id"
+    text name_of_child
+    text financial_year
+    month_enum month "ENUM January|February|March|April|May|June|July|August|September|October|November|December"
+    text diagnosis_illness
+    text contact_number
+    status_enum life_status "ENUM Active|Deceased"
+    date exit_date
+    contact_type_enum contact_type "ENUM Call|Visit"
+    date home_call_visit_date
+    text therapist_social_worker_nurse
+    date grocery_support_required_date
+    date grocery_support_provided_date
+    date medicine_support_required_date
+    date medicine_support_provided_date
+    date educational_support_required_date
+    date educational_support_provided_date
+    text any_other_support_required
+    text any_other_support_provided
+    numeric weight_in_kg
+    numeric height_in_cm
+    text notes
+    text source_used
+    boolean verification_from_goalkeep
+    boolean verification_from_hfh
+    text doubt_from_goalkeep
+    text hfh_comments
+    text source_file "NOT NULL; UNIQUE (source_file,source_sheet,source_row)"
+    text source_sheet "NOT NULL; UNIQUE (source_file,source_sheet,source_row)"
+    int source_row "NOT NULL; UNIQUE (source_file,source_sheet,source_row)"
+  }
+  hospital_children {
+    text hospital_child_id "NOT NULL; PK"
+    text child_name "NOT NULL; UNIQUE (child_name); UNIQUE exact child name"
+    text source_file "NOT NULL; UNIQUE (source_file,source_sheet,source_row)"
+    text source_sheet "NOT NULL; UNIQUE (source_file,source_sheet,source_row)"
+    int source_row "NOT NULL; UNIQUE (source_file,source_sheet,source_row)"
+  }
+  hospital_session_feedback {
+    uuid hospital_session_feedback_id "NOT NULL; PK"
+    text hospital_child_id "NOT NULL; FK to hospital_children.hospital_child_id"
+    text facilitator
+    date session_date
+    text diagnosis
+    hospital_enum hospital_name "ENUM Metro Care Hospital A|Metro Care Hospital B|Metro Care Hospital C|Metro Care Hospital D"
+    ward_enum ward "ENUM General Ward|Hematology Ward|Pediatric Ward|Ward A|Ward B"
+    text ritual
+    text warm_up
+    text core_activity
+    text closure
+    text feeling_on_entry
+    text feeling_during_activity
+    text felt_relaxed
+    text activity_fun
+    text would_attend_again
+    text notes
+    text source_used
+    text source_file "NOT NULL; UNIQUE (source_file,source_sheet,source_row)"
+    text source_sheet "NOT NULL; UNIQUE (source_file,source_sheet,source_row)"
+    int source_row "NOT NULL; UNIQUE (source_file,source_sheet,source_row)"
+  }
+  rosenberg_assessment_history {
+    uuid rosenberg_assessment_id "NOT NULL; PK"
+    text beneficiary_id "NOT NULL; FK to beneficiaries.beneficiary_id"
+    text name_of_child
+    date assessment_date
+    text q1_raw "CHECK SA|A|DA|SD"
+    int q1_value "CHECK 1..4"
+    text q2_raw "CHECK SA|A|DA|SD"
+    int q2_value "CHECK 1..4"
+    text q3_raw "CHECK SA|A|DA|SD"
+    int q3_value "CHECK 1..4"
+    text q4_raw "CHECK SA|A|DA|SD"
+    int q4_value "CHECK 1..4"
+    text q5_raw "CHECK SA|A|DA|SD"
+    int q5_value "CHECK 1..4"
+    text q6_raw "CHECK SA|A|DA|SD"
+    int q6_value "CHECK 1..4"
+    text q7_raw "CHECK SA|A|DA|SD"
+    int q7_value "CHECK 1..4"
+    text q8_raw "CHECK SA|A|DA|SD"
+    int q8_value "CHECK 1..4"
+    text q9_raw "CHECK SA|A|DA|SD"
+    int q9_value "CHECK 1..4"
+    text q10_raw "CHECK SA|A|DA|SD"
+    int q10_value "CHECK 1..4"
+    int source_total_score
+    text notes
+    boolean verification_from_goalkeep
+    boolean verification_from_hfh
+    text doubt_from_goalkeep
+    text hfh_comments
+    text source_file "NOT NULL; UNIQUE (source_file,source_sheet,source_row)"
+    text source_sheet "NOT NULL; UNIQUE (source_file,source_sheet,source_row)"
+    int source_row "NOT NULL; UNIQUE (source_file,source_sheet,source_row)"
+  }
+  stirling_assessment_history {
+    uuid stirling_assessment_id "NOT NULL; PK"
+    text beneficiary_id "NOT NULL; FK to beneficiaries.beneficiary_id"
+    text name_of_child
+    assessment_test_type_enum test_type "ENUM Pre|Post"
+    date assessment_date
+    int q1 "CHECK 1..5"
+    int q2 "CHECK 1..5"
+    int q3 "CHECK 1..5"
+    int q4 "CHECK 1..5"
+    int q5 "CHECK 1..5"
+    int q6 "CHECK 1..5"
+    int q7 "CHECK 1..5"
+    int q8 "CHECK 1..5"
+    int q9 "CHECK 1..5"
+    int q10 "CHECK 1..5"
+    int q11 "CHECK 1..5"
+    int q12 "CHECK 1..5"
+    int q13 "CHECK 1..5"
+    int q14 "CHECK 1..5"
+    int q15 "CHECK 1..5"
+    int source_total_score
+    text notes
+    boolean verification_from_goalkeep
+    boolean verification_from_hfh
+    text doubt_from_goalkeep
+    text hfh_comments
+    text source
+    text source_file "NOT NULL; UNIQUE (source_file,source_sheet,source_row)"
+    text source_sheet "NOT NULL; UNIQUE (source_file,source_sheet,source_row)"
+    int source_row "NOT NULL; UNIQUE (source_file,source_sheet,source_row)"
+  }
+  beneficiaries ||--o{ daycare_attendance : "beneficiary_id references beneficiary_id"
+  beneficiaries ||--o{ daycare_quarterly : "beneficiary_id references beneficiary_id"
+  beneficiaries ||--o{ homecare_monthly : "beneficiary_id references beneficiary_id"
+  hospital_children ||--o{ hospital_session_feedback : "hospital_child_id references hospital_child_id"
+  beneficiaries ||--o{ rosenberg_assessment_history : "beneficiary_id references beneficiary_id"
+  beneficiaries ||--o{ stirling_assessment_history : "beneficiary_id references beneficiary_id"
