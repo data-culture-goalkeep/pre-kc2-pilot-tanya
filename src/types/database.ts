@@ -886,16 +886,48 @@ export type Database = {
       }
     }
     Views: {
-      beneficiary_dashboard_chart_data: {
-        Row: { chart_name: string | null; label: string | null; sort_order: number | null; value: number | null }
+      hospital_sessions_records: {
+        Row: { child_name: string | null; hospital_child_id: string | null; hospital_name: Database["public"]["Enums"]["hospital_enum"] | null; hospital_session_feedback_id: string | null; month: string | null; session_date: string | null; ward: Database["public"]["Enums"]["ward_enum"] | null }
         Relationships: []
       }
-      beneficiary_dashboard_summary: {
-        Row: { active_count: number | null; exited_count: number | null; total_count: number | null }
+      assessments_records: {
+        Row: { test_type: string | null; phase: string | null; record_id: string | null; beneficiary_id: string | null; name_of_child: string | null; assessment_date: string | null; month: string | null; notes: string | null }
         Relationships: []
       }
     }
     Functions: {
+      beneficiary_dashboard_data: {
+        Args: {
+          p_gender?: string | null
+          p_hospital?: Database["public"]["Enums"]["hospital_enum"] | null
+          p_program?: Database["public"]["Enums"]["program_enum"] | null
+          p_status?: Database["public"]["Enums"]["status_enum"] | null
+        }
+        Returns: Json
+      }
+      daycare_attendance_dashboard_data: {
+        Args: {
+          p_beneficiary?: string | null
+          p_month?: Database["public"]["Enums"]["month_enum"] | null
+          p_program?: Database["public"]["Enums"]["program_enum"] | null
+        }
+        Returns: Json
+      }
+      hospital_sessions_dashboard_data: {
+        Args: {
+          p_hospital?: Database["public"]["Enums"]["hospital_enum"] | null
+          p_month?: Database["public"]["Enums"]["month_enum"] | null
+        }
+        Returns: Json
+      }
+      assessments_dashboard_data: {
+        Args: { p_test?: string | null; p_phase?: string | null; p_month?: Database["public"]["Enums"]["month_enum"] | null }
+        Returns: Json
+      }
+      insert_hospital_session_entry: {
+        Args: { p_child_source_row: number; p_existing_child_id: string | null; p_new_child_name: string | null; p_session: Json; p_session_source_row: number }
+        Returns: string
+      }
       next_hospital_child_id: { Args: never; Returns: string }
     }
     Enums: {
