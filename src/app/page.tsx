@@ -16,7 +16,7 @@ export default function HomePage() {
             <Link key={href} href={href} className="group rounded-lg border border-border bg-card p-5 transition-colors hover:border-brand-purple hover:bg-brand-light-blue/20 motion-reduce:transition-none">
               <span className="flex items-center justify-between gap-3 text-base font-semibold">{label}<span aria-hidden="true" className="text-muted-foreground">→</span></span>
               <p className="mt-2 leading-relaxed text-muted-foreground">{description}</p>
-              <span className="mt-4 inline-block rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">Coming soon</span>
+              <span className="mt-4 inline-block rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">{href === "/beneficiaries" ? "View beneficiaries" : "Coming soon"}</span>
             </Link>
           ))}
         </div>
