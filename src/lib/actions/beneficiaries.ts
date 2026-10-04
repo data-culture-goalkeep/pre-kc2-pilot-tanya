@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath, updateTag } from "next/cache";
 import { BENEFICIARIES_PATH } from "@/lib/beneficiaries";
 import { insertBeneficiary } from "@/lib/beneficiaries-store";
@@ -11,7 +12,7 @@ export async function saveBeneficiary(formData: FormData): Promise<BeneficiarySa
   const { input, errors } = validateBeneficiary(Object.fromEntries(formData));
   if (Object.keys(errors).length) return { ok: false, error: "Check the highlighted fields.", fieldErrors: errors };
   try {
-    await insertBeneficiary(createServerSupabaseClient(), input);
+    await insertBeneficiary(createServerSupabaseClient(), { ...input, beneficiary_id: input.beneficiary_id || `B-${randomUUID()}` });
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : "Could not save the entry. Please try again." };
   }

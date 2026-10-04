@@ -15,7 +15,7 @@ function client(fetcher: typeof fetch) { return createClient<Database>("http://1
 test("required fields, enums, impossible and future dates are rejected", () => {
   assert.equal(Object.keys(validateBeneficiary(valid, "2026-10-04").errors).length, 0);
   const missing = validateBeneficiary({}).errors;
-  for (const field of ["beneficiary_id", "name_of_child", "program", "status"] as const) assert.ok(missing[field]);
+  for (const field of ["name_of_child", "program", "date_of_birth", "status"] as const) assert.ok(missing[field]);
   assert.ok(validateBeneficiary({ ...valid, date_of_birth: "2026-02-30" }).errors.date_of_birth);
   assert.ok(validateBeneficiary({ ...valid, date_of_birth: "2099-01-01" }).errors.date_of_birth);
   assert.ok(validateBeneficiary({ ...valid, primary_mobile_no: "letters" }).errors.primary_mobile_no);
@@ -89,4 +89,31 @@ test("continuous concurrent collisions stop with a recoverable error", async () 
     posts++; return response({ code: "23505", message: 'duplicate key violates unique constraint "beneficiaries_source_row_uq"' }, 409);
   });
   await assert.rejects(() => insertBeneficiary(db, input), /same time/); assert.equal(posts, MAX_SOURCE_ROW_ATTEMPTS);
+});
+
+
+test("expanded fields persist with computed registration and birthday-aware age", async () => {
+  const fields = { ...valid, beneficiary_id: "", gender: "Woman", primary_diagnosis: "Variant Diagnosis", sub_diagnosis: "mixed Case", level_of_care: "High", address: "Test address", secondary_mobile_no: "+91 00000 00001", hospital: "Metro Care Hospital A", ward_department: "Ward A", family_occupation: "Test work", family_members: "Four", interested_in_daycare_program: "yes", notes: "Test notes", registration_date: "1900-01-01", age: 999, verification_from_hfh: true };
+  const { input: expanded, errors } = validateBeneficiary(fields, "2026-10-04");
+  assert.deepEqual(errors, {}); assert.equal(expanded.registration_date, "2026-10-04"); assert.equal(expanded.age, 16);
+  assert.equal(validateBeneficiary({ ...fields, date_of_birth: "2010-10-05" }, "2026-10-04").input.age, 15);
+  assert.equal(validateBeneficiary({ ...fields, date_of_birth: "2010-10-04" }, "2026-10-04").input.age, 16);
+  assert.ok(!("verification_from_hfh" in expanded));
+  await insertBeneficiary(client(async (_url, init) => {
+    if (init?.method !== "POST") return response([]);
+    const row = JSON.parse(String(init.body));
+    for (const field of ["gender", "primary_diagnosis", "sub_diagnosis", "level_of_care", "address", "secondary_mobile_no", "hospital", "ward_department", "family_occupation", "family_members", "interested_in_daycare_program", "notes"] as const) assert.equal(row[field], fields[field]);
+    assert.equal(row.registration_date, "2026-10-04"); assert.equal(row.age, 16);
+    return response({ beneficiary_id: "GENERATED" });
+  }), { ...expanded, beneficiary_id: "GENERATED" });
+});
+
+test("optional fields, clean enums, and exit status dates are validated", () => {
+  const minimal = { name_of_child: "Test", program: "Daycare", date_of_birth: "2010-01-01", status: "Active" };
+  assert.deepEqual(validateBeneficiary(minimal).errors, {});
+  assert.equal(validateBeneficiary({ ...minimal, exit_date: "2020-01-01" }).input.exit_date, null);
+  assert.equal(validateBeneficiary({ ...minimal, status: "Deceased", exit_date: "2020-01-01" }).input.exit_date, "2020-01-01");
+  assert.ok(validateBeneficiary({ ...minimal, status: "Deceased", exit_date: "2009-12-31" }).errors.exit_date);
+  assert.ok(validateBeneficiary({ ...minimal, hospital: "typo" }).errors.hospital);
+  assert.ok(validateBeneficiary({ ...minimal, secondary_mobile_no: "invalid" }).errors.secondary_mobile_no);
 });

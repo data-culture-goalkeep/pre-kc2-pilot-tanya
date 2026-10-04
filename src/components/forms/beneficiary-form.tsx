@@ -2,19 +2,36 @@
 
 import { useRef, useState, useTransition } from "react";
 import { saveBeneficiary } from "@/lib/actions/beneficiaries";
-import { PROGRAMS, STATUSES } from "@/lib/beneficiaries";
-import { FIELD_LIMITS, validateBeneficiary, type BeneficiaryFormField, type FieldErrors } from "@/lib/validation/beneficiary";
+import { EXIT_STATUSES, HOSPITALS, PROGRAMS, STATUSES, WARDS } from "@/lib/beneficiaries";
+import { FIELD_LIMITS, todayInIndia, validateBeneficiary, type BeneficiaryFormField, type FieldErrors } from "@/lib/validation/beneficiary";
 
 const INPUT_CLASS = "mt-2 min-h-11 w-full rounded-lg border border-input bg-card px-3 py-2 text-sm";
-const TEXT_FIELDS = [
-  { name: "beneficiary_id", label: "Beneficiary ID", required: true, autoComplete: "off" },
-  { name: "name_of_child", label: "Child’s name", required: true, autoComplete: "off" },
-  { name: "primary_mobile_no", label: "Primary phone", required: false, autoComplete: "tel" },
-  { name: "location", label: "Location", required: false, autoComplete: "off" },
-] as const;
+type FormField = { name: BeneficiaryFormField; label: string; required?: boolean; options?: readonly string[]; type?: "date" | "tel"; multiline?: boolean };
+const FORM_FIELDS: readonly FormField[] = [
+  { name: "name_of_child", label: "Child’s name", required: true },
+  { name: "gender", label: "Gender" },
+  { name: "date_of_birth", label: "Date of birth", type: "date", required: true },
+  { name: "program", label: "Program", options: PROGRAMS, required: true },
+  { name: "primary_diagnosis", label: "Primary diagnosis" },
+  { name: "sub_diagnosis", label: "Sub-diagnosis" },
+  { name: "level_of_care", label: "Level of care" },
+  { name: "location", label: "Location" },
+  { name: "address", label: "Address", multiline: true },
+  { name: "primary_mobile_no", label: "Primary phone", type: "tel" },
+  { name: "secondary_mobile_no", label: "Secondary phone", type: "tel" },
+  { name: "hospital", label: "Hospital", options: HOSPITALS },
+  { name: "ward_department", label: "Ward / department", options: WARDS },
+  { name: "status", label: "Status", options: STATUSES, required: true },
+  { name: "exit_date", label: "Exit date", type: "date" },
+  { name: "family_occupation", label: "Family occupation" },
+  { name: "family_members", label: "Family members" },
+  { name: "interested_in_daycare_program", label: "Interested in daycare program" },
+  { name: "notes", label: "Notes", multiline: true },
+];
 
 export function BeneficiaryForm({ onSaved, onCancel, onBusyChange }: { onSaved: () => void; onCancel: () => void; onBusyChange: (busy: boolean) => void }) {
   const form = useRef<HTMLFormElement>(null);
+  const [status, setStatus] = useState("Active");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
@@ -51,11 +68,18 @@ export function BeneficiaryForm({ onSaved, onCancel, onBusyChange }: { onSaved: 
     <form ref={form} onSubmit={submit} noValidate className="flex min-h-0 flex-1 flex-col">
       <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
         <p className="text-xs text-muted-foreground">Fields marked * are required.</p>
-        {TEXT_FIELDS.slice(0, 2).map(({ name, label, required, autoComplete }) => <div key={name}><label htmlFor={name} className="font-medium">{label} *</label><input id={name} name={name} required={required} autoComplete={autoComplete} maxLength={FIELD_LIMITS[name]} disabled={pending} aria-invalid={!!errors[name]} aria-describedby={errors[name] ? `${name}-error` : undefined} className={INPUT_CLASS} />{fieldError(name)}</div>)}
-        <div><label htmlFor="program" className="font-medium">Program *</label><select id="program" name="program" required defaultValue="" disabled={pending} aria-invalid={!!errors.program} aria-describedby={errors.program ? "program-error" : undefined} className={INPUT_CLASS}><option value="">Choose a program</option>{PROGRAMS.map((value) => <option key={value}>{value}</option>)}</select>{fieldError("program")}</div>
-        <div><label htmlFor="date_of_birth" className="font-medium">Date of birth</label><input id="date_of_birth" name="date_of_birth" type="date" disabled={pending} aria-invalid={!!errors.date_of_birth} aria-describedby={errors.date_of_birth ? "date_of_birth-error" : undefined} className={INPUT_CLASS} />{fieldError("date_of_birth")}</div>
-        <div><label htmlFor="status" className="font-medium">Status *</label><select id="status" name="status" required defaultValue="Active" disabled={pending} aria-invalid={!!errors.status} aria-describedby={errors.status ? "status-error" : undefined} className={INPUT_CLASS}>{STATUSES.map((value) => <option key={value}>{value}</option>)}</select>{fieldError("status")}</div>
-        {TEXT_FIELDS.slice(2).map(({ name, label, required, autoComplete }) => <div key={name}><label htmlFor={name} className="font-medium">{label}</label><input id={name} name={name} type={name === "primary_mobile_no" ? "tel" : "text"} required={required} autoComplete={autoComplete} maxLength={FIELD_LIMITS[name]} disabled={pending} aria-invalid={!!errors[name]} aria-describedby={errors[name] ? `${name}-error` : undefined} className={INPUT_CLASS} />{fieldError(name)}</div>)}
+        <p className="text-xs text-muted-foreground">Beneficiary ID and registration date are assigned automatically. Age is calculated from date of birth.</p>
+        {FORM_FIELDS.filter(field => field.name !== "exit_date" || EXIT_STATUSES.includes(status)).map(({ name, label, required, options, type, multiline }) => {
+          const common = { id: name, name, required, disabled: pending, "aria-invalid": !!errors[name], "aria-describedby": errors[name] ? `${name}-error` : undefined, className: INPUT_CLASS };
+          const maxLength = name in FIELD_LIMITS ? FIELD_LIMITS[name as keyof typeof FIELD_LIMITS] : undefined;
+          return <div key={name}>
+            <label htmlFor={name} className="font-medium">{label}{required ? " *" : ""}</label>
+            {options ? <select {...common} defaultValue={name === "status" ? "Active" : ""} onChange={name === "status" ? event => setStatus(event.target.value) : undefined}><option value="">{required ? `Choose ${label.toLowerCase()}` : "Not specified"}</option>{options.map(value => <option key={value}>{value}</option>)}</select>
+              : multiline ? <textarea {...common} rows={3} maxLength={maxLength} />
+              : <input {...common} type={type ?? "text"} max={type === "date" ? todayInIndia() : undefined} maxLength={maxLength} autoComplete={type === "tel" ? "tel" : "off"} />}
+            {fieldError(name)}
+          </div>;
+        })}
         {error && <p role="alert" className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
       </div>
       <div className="flex justify-end gap-3 border-t border-border px-6 py-4">
