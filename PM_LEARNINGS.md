@@ -43,3 +43,11 @@ Preserve source-shaped records and values; record `source_file`, `source_sheet`,
 ## Effort estimate
 
 The recorded workflow spans about **4 hours 17 minutes end to end**, around **22 user prompts**, and **eight main steps** (planning through handover), followed by ER diagram and context-document tasks. This is a collaboration-window estimate, not measured active labor; Cohort 2 should budget roughly **half a day** including data-owner decisions and verification.
+
+## Phase 2 dashboard handoff
+
+Phase 2 adds a shared filters-first dashboard layout across Beneficiaries, Daycare Attendance, Hospital Sessions, and Assessments. Score cards and chart aggregates respond to the active filters; charts export grouped CSV; full records stay in a searchable, paginated drawer. PostgreSQL functions aggregate chart data, and the page does not fetch the full record set to the browser. New entries are insert-only and stamped with `Happy Feet Dashboard` / `Manual Entry` provenance and a code-generated positive `source_row`.
+
+The Phase 2 work was tested locally with synthetic PGlite fixtures, type checking, and linting. No hosted SQL was applied and no PR was merged as part of that work. The policies are test-only read/insert policies with the comment **TEST ONLY - tighten before real data**. There is no login, edit, or delete feature.
+
+The source-data migration total remains **12,724 inserted, 0 updated, 0 unchanged, and 166 failed**. Before real data, the PM still needs to decide login/authorization, manual `source_row` semantics, the Rosenberg scoring key, and durable hospital child identity. See [Phase 2 playbook](docs/PLAYBOOK_phase2.md) for setup variables, ordered migrations, known deployment gotchas, and the dummy-project cleanup SQL.
