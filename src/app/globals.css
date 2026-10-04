@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+:root {
+  --brand-pink: #EC4C9B;
+  --brand-light-blue: #D3E3FD;
+  --brand-soft-pink: #F7B6D2;
+  --brand-purple: #B9A7D9;
+  --background: #FAFAFC;
+  --foreground: #292434;
+  --card: #FFFFFF;
+  --card-foreground: var(--foreground);
+  --primary: var(--brand-pink);
+  --primary-foreground: #292434;
+  --secondary: var(--brand-light-blue);
+  --secondary-foreground: var(--foreground);
+  --muted: #F0EEF3;
+  --muted-foreground: #62596C;
+  --accent: var(--brand-soft-pink);
+  --accent-foreground: var(--foreground);
+  --destructive: #B42318;
+  --border: #E5E0E9;
+  --input: var(--border);
+  --ring: #67418B;
+  --radius: 0.75rem;
+}
+
+@theme inline {
+  --color-brand-pink: var(--brand-pink);
+  --color-brand-light-blue: var(--brand-light-blue);
+  --color-brand-soft-pink: var(--brand-soft-pink);
+  --color-brand-purple: var(--brand-purple);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-lg: var(--radius);
+}
+
+@layer base {
+  body {
+    @apply bg-background font-sans text-sm text-foreground antialiased;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-4 outline-ring;
+  }
+
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
