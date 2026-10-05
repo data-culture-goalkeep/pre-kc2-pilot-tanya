@@ -151,6 +151,7 @@ revoke all on function public.save_daycare_attendance_grid(public.month_enum, te
 grant execute on function public.save_daycare_attendance_grid(public.month_enum, text, public.program_enum, jsonb) to anon, authenticated;
 
 -- Refresh the score-card/chart function for the new codes and financial-year filter.
+drop function if exists public.daycare_attendance_dashboard_data(public.month_enum, public.program_enum, text);
 create or replace function public.daycare_attendance_dashboard_data(
   p_month public.month_enum default null,
   p_program public.program_enum default null,
