@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   const params = new URL(request.url).searchParams;
   const chart = params.get("chart") ?? "";
   if (!CHARTS.some((value) => value === chart)) return NextResponse.json({ error: "Choose a valid attendance chart." }, { status: 400 });
-  const filters: DaycareFilters = { month: MONTHS.includes(params.get("month") as typeof MONTHS[number]) ? params.get("month")! : "", program: ATTENDANCE_PROGRAMS.includes(params.get("program") as typeof ATTENDANCE_PROGRAMS[number]) ? params.get("program")! : "", beneficiary: (params.get("beneficiary") ?? "").slice(0,100) };
+  const filters: DaycareFilters = { month: MONTHS.includes(params.get("month") as typeof MONTHS[number]) ? params.get("month")! : "", financial_year: /^\d{4}-\d{2}$/.test(params.get("financial_year") ?? "") ? params.get("financial_year")! : "", program: ATTENDANCE_PROGRAMS.includes(params.get("program") as typeof ATTENDANCE_PROGRAMS[number]) ? params.get("program")! : "", beneficiary: (params.get("beneficiary") ?? "").slice(0,100) };
   try {
     const { charts } = await getDaycareData(filters);
     const rows = charts.filter((row) => row.chart_name === chart).map((row) => ({ label: row.label, value: row.value, series: row.series ?? "" }));
