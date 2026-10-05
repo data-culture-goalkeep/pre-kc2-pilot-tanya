@@ -908,10 +908,19 @@ export type Database = {
       daycare_attendance_dashboard_data: {
         Args: {
           p_beneficiary?: string | null
+          p_financial_year?: string | null
           p_month?: Database["public"]["Enums"]["month_enum"] | null
           p_program?: Database["public"]["Enums"]["program_enum"] | null
         }
         Returns: Json
+      }
+      daycare_attendance_grid_data: {
+        Args: { p_financial_year: string; p_month: Database["public"]["Enums"]["month_enum"]; p_program?: Database["public"]["Enums"]["program_enum"] }
+        Returns: Json
+      }
+      save_daycare_attendance_grid: {
+        Args: { p_financial_year: string; p_month: Database["public"]["Enums"]["month_enum"]; p_program: Database["public"]["Enums"]["program_enum"]; p_rows: Json }
+        Returns: number
       }
       hospital_sessions_dashboard_data: {
         Args: {
@@ -932,7 +941,7 @@ export type Database = {
     }
     Enums: {
       assessment_test_type_enum: "Pre" | "Post"
-      attendance_code_enum: "P" | "NA"
+      attendance_code_enum: "P" | "A" | "H" | "NA"
       contact_type_enum: "Call" | "Visit"
       hospital_enum:
         | "Metro Care Hospital A"
@@ -1089,7 +1098,7 @@ export const Constants = {
   public: {
     Enums: {
       assessment_test_type_enum: ["Pre", "Post"],
-      attendance_code_enum: ["P", "NA"],
+      attendance_code_enum: ["P", "A", "H", "NA"],
       contact_type_enum: ["Call", "Visit"],
       hospital_enum: [
         "Metro Care Hospital A",

@@ -6,7 +6,7 @@ import { DataTable } from "@/components/data-table";
 import { ExportButton } from "@/components/export-button";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 
-export type DashboardFilter = { key: string; label: string; value: string; type?: "select" | "text"; options?: readonly string[]; placeholder?: string };
+export type DashboardFilter = { key: string; label: string; value: string; type?: "select" | "text"; options?: readonly string[]; placeholder?: string; allowAll?: boolean };
 export type DashboardChart = { name: string; title: string; kind: "bar" | "horizontal" | "donut" | "line"; rows: Array<{ label: string; value: number; series?: string }> ; exportUrl: string };
 export type DashboardRecord = Record<string, string | number | boolean | null | undefined>;
 export type RecordPage = { rows: DashboardRecord[]; total: number; page: number; pageCount: number };
@@ -17,7 +17,7 @@ type Props = {
   scores: Array<{ label: string; value: string | number; tone: "pink" | "blue" | "purple" }>;
   charts: DashboardChart[]; addLabel: string; addDescription: string; addForm: (close: () => void) => ReactNode;
   recordColumns: Array<{ key: string; label: string }>; recordKey: string;
-  recordsExportUrl: string; loadRecords: LoadRecords; recordsError?: string; chartError?: string;
+  recordsExportUrl: string; loadRecords: LoadRecords; recordsError?: string; chartError?: string; afterCharts?: ReactNode;
 };
 
 const TONES = { pink: "bg-brand-pink text-primary-foreground", blue: "bg-brand-light-blue text-foreground", purple: "bg-brand-purple text-foreground" } as const;
@@ -69,7 +69,7 @@ export function DashboardWorkspace(props: Props) {
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {props.filters.map((filter) => <label key={filter.key} className="text-xs font-medium text-muted-foreground">{filter.label}
           {filter.type === "text" ? <input value={filter.value} onChange={(event) => updateFilter(filter.key, event.target.value)} placeholder={filter.placeholder} className="mt-2 min-h-11 w-full rounded-lg border border-input bg-card px-3 text-sm text-foreground" />
-            : <select value={filter.value} onChange={(event) => updateFilter(filter.key, event.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-input bg-card px-3 text-sm text-foreground"><option value="">All {filter.label.toLowerCase()}</option>{filter.options?.map((option) => <option key={option}>{option}</option>)}</select>}
+            : <select value={filter.value} onChange={(event) => updateFilter(filter.key, event.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-input bg-card px-3 text-sm text-foreground">{filter.allowAll === false ? null : <option value="">All {filter.label.toLowerCase()}</option>}{filter.options?.map((option) => <option key={option}>{option}</option>)}</select>}
         </label>)}
       </div>
     </section>
@@ -80,10 +80,12 @@ export function DashboardWorkspace(props: Props) {
 
     {props.chartError ? <div role="alert" className="rounded-lg border border-destructive/30 bg-card p-4 text-sm text-destructive">Charts could not be loaded: {props.chartError}</div> : <section aria-label={`${props.title} charts`} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {props.charts.map((chart) => <article key={chart.name} className="min-w-0 rounded-xl border border-border bg-card p-4 shadow-sm">
-        <header className="mb-4 flex min-h-10 items-center justify-between gap-2"><h2 className="text-sm font-semibold">{chart.title}</h2><div className="flex items-center gap-1"><button type="button" onClick={() => setAddOpen(true)} className="min-h-9 rounded-lg px-2 text-sm font-semibold text-brand-pink hover:bg-brand-soft-pink/30">+ {props.addLabel}</button><ExportButton url={`${chart.exportUrl}${queryString ? `&${queryString}` : ""}`} filename={`${props.path.slice(1)}-${chart.name}.csv`} iconOnly label={`Export ${chart.title} data as CSV`} /></div></header>
+        <header className="mb-4 flex min-h-10 items-center justify-between gap-2"><h2 className="text-sm font-semibold">{chart.title}</h2><button type="button" onClick={() => setAddOpen(true)} className="min-h-9 rounded-lg px-2 text-sm font-semibold text-brand-pink hover:bg-brand-soft-pink/30">+ {props.addLabel}</button></header>
         <Chart chart={chart} />
       </article>)}
     </section>}
+
+    {props.afterCharts}
 
     <Sheet open={addOpen} onOpenChange={setAddOpen}><SheetContent className="sm:max-w-2xl"><div className="flex items-start justify-between gap-4 border-b border-border px-6 py-5"><div><SheetTitle className="text-lg font-semibold">Add {props.addLabel.toLowerCase()}</SheetTitle><SheetDescription className="mt-2 text-sm text-muted-foreground">{props.addDescription}</SheetDescription></div><SheetClose asChild><button type="button" aria-label="Close add form" className="flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-border text-xl">×</button></SheetClose></div>{props.addForm(() => setAddOpen(false))}</SheetContent></Sheet>
 
