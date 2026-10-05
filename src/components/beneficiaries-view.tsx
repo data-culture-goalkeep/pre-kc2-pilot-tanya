@@ -1,73 +1,65 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { DataTable, type TableColumn } from "@/components/data-table";
-import { ExportButton } from "@/components/export-button";
+import { DashboardWorkspace, type DashboardChart, type DashboardFilter } from "@/components/dashboard-workspace";
 import { BeneficiaryForm } from "@/components/forms/beneficiary-form";
 import { SaveToast } from "@/components/save-toast";
-import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { EMPTY_FILTERS, filterBeneficiaries, PROGRAMS, STATUSES, TABLE_PAGE_SIZE, type BeneficiaryFilters, type BeneficiarySummary } from "@/lib/beneficiaries";
+import { HOSPITALS, PROGRAMS, STATUSES, type BeneficiaryFilters } from "@/lib/beneficiaries";
+import { loadBeneficiaryRecords } from "@/lib/actions/beneficiaries";
+import type { BeneficiaryChartRow, BeneficiaryDashboardSummary } from "@/lib/queries/beneficiary-dashboard";
 
-const COLUMNS: TableColumn<BeneficiarySummary>[] = [
-  { key: "beneficiary_id", label: "Beneficiary ID" },
-  { key: "name_of_child", label: "Name" },
-  { key: "program", label: "Program" },
-  { key: "date_of_birth", label: "Date of birth", render: (row) => row.date_of_birth ? <time dateTime={row.date_of_birth}>{new Intl.DateTimeFormat("en-IN", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${row.date_of_birth}T00:00:00Z`))}</time> : "—" },
-  { key: "status", label: "Status", render: (row) => row.status ? <span className="rounded-full bg-brand-light-blue px-3 py-1 text-xs">{row.status}</span> : "—" },
-  { key: "primary_mobile_no", label: "Primary phone" },
+const CHARTS: Array<{ name: string; title: string; kind: DashboardChart["kind"] }> = [
+  { name: "program", title: "By program", kind: "bar" },
+  { name: "status", title: "By status", kind: "donut" },
+  { name: "gender", title: "By gender", kind: "donut" },
+  { name: "age_group", title: "By age group", kind: "bar" },
+  { name: "primary_diagnosis", title: "Top primary diagnoses", kind: "horizontal" },
+  { name: "hospital", title: "By hospital", kind: "bar" },
+];
+const RECORD_COLUMNS = [
+  { key: "beneficiary_id", label: "Beneficiary ID" }, { key: "name_of_child", label: "Name" },
+  { key: "program", label: "Program" }, { key: "date_of_birth", label: "Date of birth" },
+  { key: "status", label: "Status" }, { key: "primary_mobile_no", label: "Primary phone" },
   { key: "location", label: "Location" },
 ];
 
-export function BeneficiariesView({ rows, error }: { rows: BeneficiarySummary[]; error?: string }) {
+export function BeneficiariesView({ filters, summary, charts, chartError }: { filters: BeneficiaryFilters; summary: BeneficiaryDashboardSummary | null; charts: BeneficiaryChartRow[]; chartError?: string }) {
   const router = useRouter();
-  const [filters, setFilters] = useState<BeneficiaryFilters>(EMPTY_FILTERS);
-  const [page, setPage] = useState(1);
-  const [open, setOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState(0);
-  const filtered = useMemo(() => filterBeneficiaries(rows, filters), [rows, filters]);
-  const pages = Math.max(1, Math.ceil(filtered.length / TABLE_PAGE_SIZE));
-  const currentPage = Math.min(page, pages);
-  const start = (currentPage - 1) * TABLE_PAGE_SIZE;
-  const visible = filtered.slice(start, start + TABLE_PAGE_SIZE);
-  const query = new URLSearchParams(filters).toString();
-  function changeFilter(field: keyof BeneficiaryFilters, value: string) { setFilters({ ...filters, [field]: value }); setPage(1); }
-
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div><h1 className="text-xl font-semibold">Beneficiaries</h1><p className="mt-2 text-muted-foreground">Registered children and their program details.</p></div>
-        <div className="flex flex-wrap items-center gap-3">
-          <ExportButton url={`/beneficiaries/export?${query}`} filename="beneficiaries.csv" disabled={!!error} />
-          <Sheet open={open} onOpenChange={(value) => { if (!saving) setOpen(value); }}>
-            <SheetTrigger asChild><button type="button" disabled={!!error} aria-label="Add beneficiary" className="flex min-h-11 items-center gap-2 rounded-lg bg-brand-pink px-4 font-semibold text-primary-foreground disabled:opacity-50"><span aria-hidden="true" className="text-xl leading-none">+</span> Add beneficiary</button></SheetTrigger>
-            <SheetContent>
-              <div className="flex items-start justify-between gap-4 border-b border-border px-6 py-5">
-                <div><SheetTitle className="text-lg font-semibold">Add beneficiary</SheetTitle><SheetDescription className="mt-2 text-sm text-muted-foreground">Enter the child’s details to register a beneficiary.</SheetDescription></div>
-                <SheetClose asChild><button type="button" disabled={saving} aria-label="Close add form" className="flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-border text-xl disabled:opacity-50">×</button></SheetClose>
-              </div>
-              <BeneficiaryForm onBusyChange={setSaving} onCancel={() => setOpen(false)} onSaved={() => { setOpen(false); setSavedAt(Date.now()); router.refresh(); }} />
-            </SheetContent>
-          </Sheet>
-        </div>
-      </div>
-
-      <div className="max-w-sm rounded-lg bg-brand-pink p-6 text-primary-foreground"><p className="text-sm font-medium">Total beneficiaries</p><p className="mt-3 text-3xl font-semibold tabular-nums">{error ? "—" : rows.length.toLocaleString("en-IN")}</p></div>
-
-      {error ? <div role="alert" className="rounded-lg border border-destructive/30 bg-card p-5"><p className="font-medium text-destructive">Beneficiaries could not be loaded</p><p className="mt-2 text-muted-foreground">{error}</p><button type="button" onClick={() => router.refresh()} className="mt-4 min-h-11 rounded-lg border border-border px-4 font-medium">Try again</button></div> : <section aria-label="Beneficiary records" className="rounded-lg border border-border bg-card">
-        <div className="grid gap-4 border-b border-border p-4 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
-          <div><label htmlFor="beneficiary-search" className="text-xs font-medium text-muted-foreground">Search</label><input id="beneficiary-search" type="search" value={filters.search} onChange={(event) => changeFilter("search", event.target.value)} placeholder="Search name, ID, phone, or location" className="mt-2 min-h-11 w-full rounded-lg border border-input px-3" /></div>
-          <div><label htmlFor="program-filter" className="text-xs font-medium text-muted-foreground">Program</label><select id="program-filter" value={filters.program} onChange={(event) => changeFilter("program", event.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-input bg-card px-3"><option value="">All programs</option>{PROGRAMS.map((value) => <option key={value}>{value}</option>)}</select></div>
-          <div><label htmlFor="status-filter" className="text-xs font-medium text-muted-foreground">Status</label><select id="status-filter" value={filters.status} onChange={(event) => changeFilter("status", event.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-input bg-card px-3"><option value="">All statuses</option>{STATUSES.map((value) => <option key={value}>{value}</option>)}</select></div>
-        </div>
-        <DataTable rows={visible} columns={COLUMNS} rowKey="beneficiary_id" caption="Beneficiaries in the current filtered view" emptyMessage={rows.length ? "No beneficiaries match these filters." : "No beneficiaries yet. Add the first entry to get started."} />
-        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-          <p className="text-xs text-muted-foreground">{filtered.length ? `${start + 1}–${start + visible.length} of ${filtered.length}` : "0 records"}</p>
-          <div className="flex items-center gap-3"><button type="button" disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)} className="min-h-11 rounded-lg border border-border px-3 text-xs disabled:opacity-40">Previous</button><span className="text-xs text-muted-foreground">Page {currentPage} of {pages}</span><button type="button" disabled={currentPage === pages} onClick={() => setPage(currentPage + 1)} className="min-h-11 rounded-lg border border-border px-3 text-xs disabled:opacity-40">Next</button></div>
-        </div>
-      </section>}
-      <SaveToast savedAt={savedAt} />
-    </div>
-  );
+  const filterItems: DashboardFilter[] = [
+    { key: "program", label: "Program", value: filters.program, options: PROGRAMS },
+    { key: "status", label: "Status", value: filters.status, options: STATUSES },
+    { key: "gender", label: "Gender", value: filters.gender, type: "text", placeholder: "Any gender value" },
+    { key: "hospital", label: "Hospital", value: filters.hospital, options: HOSPITALS },
+  ];
+  const chartData = CHARTS.map((chart) => ({
+    ...chart,
+    rows: charts.filter((item) => item.chart_name === chart.name).map((item) => ({ label: item.label ?? "Unknown", value: item.value ?? 0 })),
+    exportUrl: `/beneficiaries/charts/export?chart=${chart.name}`,
+  }));
+  return <>
+    <DashboardWorkspace
+      title="Beneficiaries"
+      description="Registered children and their program details."
+      path="/beneficiaries"
+      filters={filterItems}
+      scores={[
+        { label: "Total beneficiaries", value: summary?.total_count ?? "—", tone: "pink" },
+        { label: "Active", value: summary?.active_count ?? "—", tone: "blue" },
+        { label: "Exited / inactive", value: summary?.exited_count ?? "—", tone: "purple" },
+      ]}
+      charts={chartData}
+      addLabel="Beneficiary"
+      addDescription="Enter a child’s details to register a beneficiary."
+      addForm={(close) => <BeneficiaryForm onBusyChange={setSaving} onCancel={close} onSaved={() => { close(); setSavedAt(Date.now()); router.refresh(); }} />}
+      recordColumns={RECORD_COLUMNS}
+      recordKey="beneficiary_id"
+      recordsExportUrl="/beneficiaries/export"
+      loadRecords={loadBeneficiaryRecords}
+      chartError={chartError}
+    />
+    <SaveToast savedAt={savedAt} />
+  </>;
 }

@@ -25,8 +25,8 @@ test("required fields, enums, impossible and future dates are rejected", () => {
 
 test("filters combine search, program, and status consistently", () => {
   const rows = [{ ...input, primary_mobile_no: null, location: "Mumbai" }, { ...input, beneficiary_id: "TEST-002", program: "Homecare" as const }];
-  assert.equal(filterBeneficiaries(rows, { search: " mUmBaI ", program: "Daycare", status: "Active" }).length, 1);
-  assert.equal(filterBeneficiaries(rows, { search: "", program: "Homecare", status: "Deceased" }).length, 0);
+  assert.equal(filterBeneficiaries(rows, { search: " mUmBaI ", program: "Daycare", status: "Active", gender: "", hospital: "" }).length, 1);
+  assert.equal(filterBeneficiaries(rows, { search: "", program: "Homecare", status: "Deceased", gender: "", hospital: "" }).length, 0);
 });
 
 test("CSV includes all columns, handles commas, quotes, newlines, and blocks formulas", () => {
