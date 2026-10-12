@@ -6,7 +6,7 @@ import { DataTable } from "@/components/data-table";
 import { ExportButton } from "@/components/export-button";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 
-export type DashboardFilter = { key: string; label: string; value: string; type?: "select" | "text"; options?: readonly string[]; placeholder?: string; allowAll?: boolean };
+export type DashboardFilter = { key: string; label: string; value: string; type?: "select" | "text"; options?: readonly (string | { value: string; label: string })[]; placeholder?: string; allowAll?: boolean };
 export type DashboardChart = { name: string; title: string; kind: "bar" | "horizontal" | "donut" | "line"; rows: Array<{ label: string; value: number; series?: string }> ; exportUrl: string };
 export type DashboardRecord = Record<string, string | number | boolean | null | undefined>;
 export type RecordPage = { rows: DashboardRecord[]; total: number; page: number; pageCount: number };
@@ -69,7 +69,7 @@ export function DashboardWorkspace(props: Props) {
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {props.filters.map((filter) => <label key={filter.key} className="text-xs font-medium text-muted-foreground">{filter.label}
           {filter.type === "text" ? <input value={filter.value} onChange={(event) => updateFilter(filter.key, event.target.value)} placeholder={filter.placeholder} className="mt-2 min-h-11 w-full rounded-lg border border-input bg-card px-3 text-sm text-foreground" />
-            : <select value={filter.value} onChange={(event) => updateFilter(filter.key, event.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-input bg-card px-3 text-sm text-foreground">{filter.allowAll === false ? null : <option value="">All {filter.label.toLowerCase()}</option>}{filter.options?.map((option) => <option key={option}>{option}</option>)}</select>}
+            : <select value={filter.value} onChange={(event) => updateFilter(filter.key, event.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-input bg-card px-3 text-sm text-foreground">{filter.allowAll === false ? null : <option value="">All {filter.label.toLowerCase()}</option>}{filter.options?.map((option) => typeof option === "string" ? <option key={option} value={option}>{option}</option> : <option key={option.value} value={option.value}>{option.label}</option>)}</select>}
         </label>)}
       </div>
     </section>

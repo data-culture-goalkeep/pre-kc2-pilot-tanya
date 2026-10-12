@@ -45,6 +45,6 @@ export async function saveHospitalSession(formData: FormData): Promise<{ ok: boo
 }
 
 export async function loadHospitalRecords(filters: Record<string,string>, search:string, page:number) {
-  const allowed: HospitalFilters = { month: MONTHS.includes(filters.month as typeof MONTHS[number]) ? filters.month : "", hospital: HOSPITAL_FILTERS.includes(filters.hospital as typeof HOSPITAL_FILTERS[number]) ? filters.hospital : "" };
+  const allowed: HospitalFilters = { financial_year: /^\d{4}-\d{2}$/.test(filters.financial_year ?? "") ? filters.financial_year : "", month: MONTHS.includes(filters.month as typeof MONTHS[number]) ? filters.month : "", hospital: HOSPITAL_FILTERS.includes(filters.hospital as typeof HOSPITAL_FILTERS[number]) ? filters.hospital : "" };
   return getHospitalRecords(allowed, search.slice(0,100), Math.max(1,page));
 }
