@@ -59,5 +59,5 @@ export async function saveAssessment(form: FormData): Promise<{ok:boolean;error?
 export async function loadAssessmentRecords(filters:Record<string,string>,search:string,page:number){
  const {getAssessmentRecords}=await import("@/lib/queries/assessments");
  const {ASSESSMENT_TESTS,ASSESSMENT_PHASES,MONTHS}=await import("@/lib/assessments");
- return getAssessmentRecords({test:ASSESSMENT_TESTS.includes(filters.test as typeof ASSESSMENT_TESTS[number])?filters.test:"",phase:ASSESSMENT_PHASES.includes(filters.phase as typeof ASSESSMENT_PHASES[number])?filters.phase:"",month:MONTHS.includes(filters.month as typeof MONTHS[number])?filters.month:""},search.slice(0,100),Math.max(1,page));
+ return getAssessmentRecords({test:ASSESSMENT_TESTS.includes(filters.test as typeof ASSESSMENT_TESTS[number])?filters.test:"",phase:ASSESSMENT_PHASES.includes(filters.phase as typeof ASSESSMENT_PHASES[number])?filters.phase:"",month:MONTHS.includes(filters.month as typeof MONTHS[number])?filters.month:"",financial_year:/^\d{4}-\d{2}$/.test(filters.financial_year??"")?filters.financial_year:""},search.slice(0,100),Math.max(1,page));
 }

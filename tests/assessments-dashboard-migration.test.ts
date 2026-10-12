@@ -7,7 +7,7 @@ test("Assessments migration reports synthetic response distributions without cha
   const pg = new PGlite();
   try {
     await pg.exec("create role anon; create role authenticated; create role service_role;");
-    for (const file of ["20261001044732_create_happy_feet_schema.sql", "20261004132727_beneficiaries_test_access.sql", "20261004190000_assessments_dashboard.sql"]) {
+    for (const file of ["20261001044732_create_happy_feet_schema.sql", "20261004132727_beneficiaries_test_access.sql", "20261004190000_assessments_dashboard.sql", "20261012101500_dashboard_financial_year_filters.sql"]) {
       await pg.exec(await readFile(`supabase/migrations/${file}`, "utf8"));
     }
     await pg.exec(`
@@ -28,5 +28,33 @@ test("Assessments migration reports synthetic response distributions without cha
     assert.equal(total.rows[0].value, 12);
     await pg.exec("set role anon");
     await assert.rejects(() => pg.exec("update public.stirling_assessment_history set q1=1"));
+  } finally { await pg.close(); }
+});
+
+test("financial-year filter scopes an assessment month to April-through-March dates", { timeout: 30000 }, async () => {
+  const pg = new PGlite();
+  try {
+    await pg.exec("create role anon; create role authenticated; create role service_role;");
+    for (const file of ["20261001044732_create_happy_feet_schema.sql", "20261004132727_beneficiaries_test_access.sql", "20261004190000_assessments_dashboard.sql", "20261012101500_dashboard_financial_year_filters.sql"]) {
+      await pg.exec(await readFile(`supabase/migrations/${file}`, "utf8"));
+    }
+    await pg.exec(`
+      insert into public.beneficiaries(beneficiary_id,name_of_child,source_file,source_sheet,source_row)
+      values('SYNTHETIC-FY-ASSESSMENT','Synthetic FY Child','Happy Feet Dashboard','Manual Entry',1);
+      insert into public.stirling_assessment_history(beneficiary_id,name_of_child,test_type,assessment_date,q1,source_file,source_sheet,source_row,source_total_score)
+      values('SYNTHETIC-FY-ASSESSMENT','Synthetic FY Child','Pre',date '2025-03-31',1,'Happy Feet Dashboard','Manual Entry',2,10),
+            ('SYNTHETIC-FY-ASSESSMENT','Synthetic FY Child','Pre',date '2025-04-01',2,'Happy Feet Dashboard','Manual Entry',3,10),
+            ('SYNTHETIC-FY-ASSESSMENT','Synthetic FY Child','Post',date '2026-03-31',3,'Happy Feet Dashboard','Manual Entry',4,10),
+            ('SYNTHETIC-FY-ASSESSMENT','Synthetic FY Child','Post',date '2026-04-01',4,'Happy Feet Dashboard','Manual Entry',5,10);
+    `);
+    const scoped = await pg.query<{ data: { summary: { assessments_recorded: number }; financial_years: string[] } }>(
+      "select public.assessments_dashboard_data('Stirling',null,'March','2025-26') data",
+    );
+    assert.equal(scoped.rows[0].data.summary.assessments_recorded, 1);
+    assert.ok(scoped.rows[0].data.financial_years.includes("2025-26"));
+    const allYears = await pg.query<{ data: { summary: { assessments_recorded: number } } }>(
+      "select public.assessments_dashboard_data('Stirling',null,'March',null) data",
+    );
+    assert.equal(allYears.rows[0].data.summary.assessments_recorded, 2);
   } finally { await pg.close(); }
 });

@@ -5,10 +5,11 @@ import { revalidatePath, updateTag } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { ATTENDANCE_CODES, ATTENDANCE_PROGRAMS, MONTHS, type DaycareFilters } from "@/lib/daycare";
 import type { Database } from "@/types/database";
+import { isFinancialYear } from "@/lib/financial-year";
 
 type Day = `day_${string}`;
 const DAY_KEYS = Array.from({ length: 31 }, (_, i) => `day_${String(i + 1).padStart(2, "0")}` as Day);
-const fiscalYearOk = (value: string) => /^\d{4}-\d{2}$/.test(value);
+const fiscalYearOk = isFinancialYear;
 
 export async function saveDaycareAttendanceGrid(filters: DaycareFilters, changes: Array<{ beneficiary_id: string; values: Record<string, string> }>): Promise<{ ok: boolean; error?: string }> {
   if (!MONTHS.includes(filters.month as typeof MONTHS[number]) || !fiscalYearOk(filters.financial_year) || !ATTENDANCE_PROGRAMS.includes(filters.program as typeof ATTENDANCE_PROGRAMS[number])) return { ok: false, error: "Choose a valid month, financial year, and program." };
@@ -62,7 +63,7 @@ export async function loadDaycareRecords(filters: Record<string, string>, search
   const valid: DaycareFilters = {
     month: MONTHS.includes(filters.month as typeof MONTHS[number]) ? filters.month : "",
     financial_year: fiscalYearOk(filters.financial_year ?? "") ? filters.financial_year : "",
-    program: ATTENDANCE_PROGRAMS.includes(filters.program as typeof ATTENDANCE_PROGRAMS[number]) ? filters.program : "",
+    program: "Daycare",
     beneficiary: (filters.beneficiary ?? "").slice(0, 100),
   };
   return getDaycareRecords(valid, search.slice(0, 100), Math.max(1, page));

@@ -25,8 +25,19 @@ test("required fields, enums, impossible and future dates are rejected", () => {
 
 test("filters combine search, program, and status consistently", () => {
   const rows = [{ ...input, primary_mobile_no: null, location: "Mumbai" }, { ...input, beneficiary_id: "TEST-002", program: "Homecare" as const }];
-  assert.equal(filterBeneficiaries(rows, { search: " mUmBaI ", program: "Daycare", status: "Active", gender: "", hospital: "" }).length, 1);
-  assert.equal(filterBeneficiaries(rows, { search: "", program: "Homecare", status: "Deceased", gender: "", hospital: "" }).length, 0);
+  assert.equal(filterBeneficiaries(rows, { search: " mUmBaI ", program: "Daycare", status: "Active", gender: "", hospital: "", financial_year: "" }).length, 1);
+  assert.equal(filterBeneficiaries(rows, { search: "", program: "Homecare", status: "Deceased", gender: "", hospital: "", financial_year: "" }).length, 0);
+});
+
+test("financial-year beneficiary filter uses registration date from April through March", () => {
+  const rows = [
+    { ...input, beneficiary_id: "BEFORE-FY", registration_date: "2025-03-31" },
+    { ...input, beneficiary_id: "START-FY", registration_date: "2025-04-01" },
+    { ...input, beneficiary_id: "END-FY", registration_date: "2026-03-31" },
+    { ...input, beneficiary_id: "AFTER-FY", registration_date: "2026-04-01" },
+  ];
+  const matches = filterBeneficiaries(rows, { search: "", program: "", status: "", gender: "", hospital: "", financial_year: "2025-26" });
+  assert.deepEqual(matches.map((row) => row.beneficiary_id), ["START-FY", "END-FY"]);
 });
 
 test("CSV includes all columns, handles commas, quotes, newlines, and blocks formulas", () => {

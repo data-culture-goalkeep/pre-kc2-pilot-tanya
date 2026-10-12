@@ -20,7 +20,7 @@ export function HospitalSessionsView({filters,summary,charts,financialYears,char
   const router=useRouter(); const [,setBusy]=useState(false); const [savedAt,setSavedAt]=useState(0);
   const chartData=CHARTS.map((chart)=>({...chart,rows:charts.filter((row)=>row.chart_name===chart.name).map((row)=>({label:row.label,value:Number(row.value)})),exportUrl:`/hospital/charts/export?chart=${chart.name}`}));
   const fiscalYears=[...new Set([...financialYears,currentIndiaFinancialYear()])].sort().reverse();
-  const filterItems:DashboardFilter[]=[{key:"financial_year",label:"Financial year",value:filters.financial_year,options:fiscalYears},{key:"month",label:"Month",value:filters.month,options:hospitalMonthOptions(filters.financial_year)},{key:"hospital",label:"Hospital",value:filters.hospital,options:HOSPITAL_FILTERS}];
+  const filterItems:DashboardFilter[]=[{key:"financial_year",label:"Financial year",value:filters.financial_year,options:fiscalYears,allowAll:false},{key:"month",label:"Month",value:filters.month,options:hospitalMonthOptions(filters.financial_year)},{key:"hospital",label:"Hospital",value:filters.hospital,options:HOSPITAL_FILTERS}];
   return <><DashboardWorkspace title="Hospital Sessions" description="Feedback sessions for the separate hospital-child population." path="/hospital" filters={filterItems}
     scores={[{label:"Total children",value:summary?.total_children??"—",tone:"pink"},{label:"Total sessions",value:summary?.total_sessions??"—",tone:"blue"},{label:"Sessions this month",value:summary?.sessions_this_month??"—",tone:"purple"}]}
     charts={chartData} addLabel="Session" addDescription="Add a session for an existing hospital child or register a new H-ID child."

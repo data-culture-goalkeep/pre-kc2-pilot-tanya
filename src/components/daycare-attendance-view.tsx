@@ -6,7 +6,7 @@ import { DashboardWorkspace, type DashboardChart, type DashboardFilter } from "@
 import { DaycareAttendanceForm } from "@/components/forms/daycare-attendance-form";
 import { SaveToast } from "@/components/save-toast";
 import { loadDaycareRecords, saveDaycareAttendanceGrid } from "@/lib/actions/daycare";
-import { ATTENDANCE_CODES, ATTENDANCE_PROGRAMS, financialYearOptions, MONTHS, type DaycareFilters } from "@/lib/daycare";
+import { ATTENDANCE_CODES, financialYearOptions, MONTHS, type DaycareFilters } from "@/lib/daycare";
 import type { DaycareChartRow, DaycareGridRow, DaycareSummary } from "@/lib/queries/daycare";
 
 const CHARTS: Array<{ name: string; title: string; kind: DashboardChart["kind"] }> = [
@@ -24,9 +24,8 @@ export function DaycareAttendanceView({ filters, summary, charts, gridRows, grid
   const [savedAt, setSavedAt] = useState(0);
   const chartData = CHARTS.map((chart) => ({ ...chart, rows: charts.filter((row) => row.chart_name === chart.name).map((row) => ({ label: row.label, value: Number(row.value), series: row.series ?? undefined })), exportUrl: "" }));
   const filterItems: DashboardFilter[] = [
-    { key: "month", label: "Month", value: filters.month, options: MONTHS, allowAll: false },
     { key: "financial_year", label: "Financial year", value: filters.financial_year, options: financialYearOptions(filters.financial_year), allowAll: false },
-    { key: "program", label: "Program", value: filters.program, options: ATTENDANCE_PROGRAMS, allowAll: false },
+    { key: "month", label: "Month", value: filters.month, options: MONTHS, allowAll: false },
   ];
   return <>
     <DashboardWorkspace title="Daycare Attendance" description="Monthly attendance and quarterly support, summarized from source records." path="/attendance" filters={filterItems}

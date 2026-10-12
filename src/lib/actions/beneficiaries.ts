@@ -30,6 +30,7 @@ export async function loadBeneficiaryRecords(filters: Record<string, string>, se
     status: filters.status ?? "",
     gender: filters.gender ?? "",
     hospital: filters.hospital ?? "",
+    financial_year: filters.financial_year ?? "",
   };
   return getBeneficiaryPage(Math.max(1, page), allowed);
 }

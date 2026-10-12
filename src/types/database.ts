@@ -891,7 +891,7 @@ export type Database = {
         Relationships: []
       }
       assessments_records: {
-        Row: { test_type: string | null; phase: string | null; record_id: string | null; beneficiary_id: string | null; name_of_child: string | null; assessment_date: string | null; month: string | null; notes: string | null }
+        Row: { test_type: string | null; phase: string | null; record_id: string | null; beneficiary_id: string | null; name_of_child: string | null; assessment_date: string | null; month: string | null; financial_year: string | null; notes: string | null }
         Relationships: []
       }
     }
@@ -902,6 +902,7 @@ export type Database = {
           p_hospital?: Database["public"]["Enums"]["hospital_enum"] | null
           p_program?: Database["public"]["Enums"]["program_enum"] | null
           p_status?: Database["public"]["Enums"]["status_enum"] | null
+          p_financial_year?: string | null
         }
         Returns: Json
       }
@@ -931,7 +932,7 @@ export type Database = {
         Returns: Json
       }
       assessments_dashboard_data: {
-        Args: { p_test?: string | null; p_phase?: string | null; p_month?: Database["public"]["Enums"]["month_enum"] | null }
+        Args: { p_test?: string | null; p_phase?: string | null; p_month?: Database["public"]["Enums"]["month_enum"] | null; p_financial_year?: string | null }
         Returns: Json
       }
       insert_hospital_session_entry: {

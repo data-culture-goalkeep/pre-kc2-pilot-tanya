@@ -3,6 +3,7 @@
 import { randomInt } from "node:crypto";
 import { revalidatePath, updateTag } from "next/cache";
 import { HOSPITAL_FILTERS, HOSPITAL_WARDS, MONTHS, type HospitalFilters } from "@/lib/hospital";
+import { isFinancialYear } from "@/lib/financial-year";
 import { getHospitalRecords } from "@/lib/queries/hospital";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Json } from "@/types/database";
@@ -45,6 +46,6 @@ export async function saveHospitalSession(formData: FormData): Promise<{ ok: boo
 }
 
 export async function loadHospitalRecords(filters: Record<string,string>, search:string, page:number) {
-  const allowed: HospitalFilters = { financial_year: /^\d{4}-\d{2}$/.test(filters.financial_year ?? "") ? filters.financial_year : "", month: MONTHS.includes(filters.month as typeof MONTHS[number]) ? filters.month : "", hospital: HOSPITAL_FILTERS.includes(filters.hospital as typeof HOSPITAL_FILTERS[number]) ? filters.hospital : "" };
+  const allowed: HospitalFilters = { financial_year: isFinancialYear(filters.financial_year ?? "") ? filters.financial_year : "", month: MONTHS.includes(filters.month as typeof MONTHS[number]) ? filters.month : "", hospital: HOSPITAL_FILTERS.includes(filters.hospital as typeof HOSPITAL_FILTERS[number]) ? filters.hospital : "" };
   return getHospitalRecords(allowed, search.slice(0,100), Math.max(1,page));
 }

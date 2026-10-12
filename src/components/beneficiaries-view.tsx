@@ -24,11 +24,12 @@ const RECORD_COLUMNS = [
   { key: "location", label: "Location" },
 ];
 
-export function BeneficiariesView({ filters, summary, charts, chartError }: { filters: BeneficiaryFilters; summary: BeneficiaryDashboardSummary | null; charts: BeneficiaryChartRow[]; chartError?: string }) {
+export function BeneficiariesView({ filters, summary, charts, financialYears, chartError }: { filters: BeneficiaryFilters; summary: BeneficiaryDashboardSummary | null; charts: BeneficiaryChartRow[]; financialYears: string[]; chartError?: string }) {
   const router = useRouter();
   const [, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState(0);
   const filterItems: DashboardFilter[] = [
+    { key: "financial_year", label: "Financial year", value: filters.financial_year, options: financialYears },
     { key: "program", label: "Program", value: filters.program, options: PROGRAMS },
     { key: "status", label: "Status", value: filters.status, options: STATUSES },
     { key: "gender", label: "Gender", value: filters.gender, type: "text", placeholder: "Any gender value" },

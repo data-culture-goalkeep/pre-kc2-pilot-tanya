@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { DaycareAttendanceView } from "@/components/daycare-attendance-view";
-import { ATTENDANCE_PROGRAMS, currentIndiaFinancialYear, currentIndiaMonth, MONTHS, type DaycareFilters } from "@/lib/daycare";
+import { currentIndiaFinancialYear, currentIndiaMonth, MONTHS, type DaycareFilters } from "@/lib/daycare";
 import { getDaycareAttendanceGrid, getDaycareData } from "@/lib/queries/daycare";
+import { isFinancialYear } from "@/lib/financial-year";
 
 export const metadata: Metadata = { title: "Daycare Attendance" };
 export const revalidate = 60;
@@ -13,8 +14,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
   const yearValue = value("financial_year");
   const filters: DaycareFilters = {
     month: MONTHS.includes(monthValue as typeof MONTHS[number]) ? monthValue : currentIndiaMonth(),
-    financial_year: /^\d{4}-\d{2}$/.test(yearValue) ? yearValue : currentIndiaFinancialYear(),
-    program: ATTENDANCE_PROGRAMS.includes(value("program") as typeof ATTENDANCE_PROGRAMS[number]) ? value("program") : "Daycare",
+    financial_year: isFinancialYear(yearValue) ? yearValue : currentIndiaFinancialYear(),
+    program: "Daycare",
     beneficiary: "",
   };
   const [analyticsResult, gridResult] = await Promise.allSettled([getDaycareData(filters), getDaycareAttendanceGrid(filters)]);
