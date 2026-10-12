@@ -34,23 +34,26 @@ test("beneficiary charts and totals are grouped in an RLS-aware database functio
   const pg = new PGlite();
   try {
     await pg.exec("create role anon; create role authenticated; create role service_role;");
-    for (const filename of ["20261001044732_create_happy_feet_schema.sql", "20261001060420_add_name_of_child_to_daycare_attendance.sql", "20261004132727_beneficiaries_test_access.sql", "20261004145500_beneficiary_dashboard_aggregates.sql"]) {
+    for (const filename of ["20261001044732_create_happy_feet_schema.sql", "20261001060420_add_name_of_child_to_daycare_attendance.sql", "20261004132727_beneficiaries_test_access.sql", "20261004145500_beneficiary_dashboard_aggregates.sql", "20261012101500_dashboard_financial_year_filters.sql"]) {
       await pg.exec(await readFile(`supabase/migrations/${filename}`, "utf8"));
     }
-    await pg.exec("insert into public.beneficiaries (beneficiary_id,name_of_child,program,date_of_birth,status,gender,primary_diagnosis,hospital,source_file,source_sheet,source_row) values ('SYNTHETIC-ACTIVE','Synthetic Active Child','Daycare',current_date - interval '4 years','Active','Female','Synthetic diagnosis','Metro Care Hospital A','test','charts',1)");
-    await pg.exec("insert into public.beneficiaries (beneficiary_id,name_of_child,program,date_of_birth,status,gender,primary_diagnosis,hospital,source_file,source_sheet,source_row) values ('SEED-CHART-EXIT','Synthetic Exit Child','Homecare',current_date - interval '15 years','Deceased','Female','Synthetic exit diagnosis','Metro Care Hospital B','test','charts',2)");
+    await pg.exec("insert into public.beneficiaries (beneficiary_id,name_of_child,registration_date,program,date_of_birth,status,gender,primary_diagnosis,hospital,source_file,source_sheet,source_row) values ('SYNTHETIC-ACTIVE','Synthetic Active Child','2025-04-01','Daycare',current_date - interval '4 years','Active','Female','Synthetic diagnosis','Metro Care Hospital A','test','charts',1)");
+    await pg.exec("insert into public.beneficiaries (beneficiary_id,name_of_child,registration_date,program,date_of_birth,status,gender,primary_diagnosis,hospital,source_file,source_sheet,source_row) values ('SEED-CHART-EXIT','Synthetic Exit Child','2025-03-31','Homecare',current_date - interval '15 years','Deceased','Female','Synthetic exit diagnosis','Metro Care Hospital B','test','charts',2)");
     const total = await pg.query<{ beneficiary_dashboard_data: { summary: { total_count: number; active_count: number; exited_count: number }; charts: Array<{ chart_name: string; label: string; value: number }> } }>("select public.beneficiary_dashboard_data() as beneficiary_dashboard_data");
     const actual = await pg.query<{ total: number }>("select count(*)::int as total from public.beneficiaries");
     const result = total.rows[0].beneficiary_dashboard_data;
     assert.equal(result.summary.total_count, actual.rows[0].total);
     assert.equal(result.summary.active_count + result.summary.exited_count, actual.rows[0].total);
+    const fiscal = await pg.query<{ data: { summary: { total_count: number }; financial_years: string[] } }>("select public.beneficiary_dashboard_data(null,null,null,null,'2025-26') data");
+    assert.equal(fiscal.rows[0].data.summary.total_count, 1);
+    assert.ok(fiscal.rows[0].data.financial_years.includes("2025-26"));
     const programs = result.charts.filter((row) => row.chart_name === "program");
     assert.ok(programs.some((row) => row.label === "Daycare"));
     const ageGroups = result.charts.filter((row) => row.chart_name === "age_group");
     assert.ok(ageGroups.some((row) => row.label === "1–5"));
     const diagnosisRows = result.charts.filter((row) => row.chart_name === "primary_diagnosis");
     assert.ok(diagnosisRows.length <= 10);
-    const filtered = await pg.query<{ beneficiary_dashboard_data: typeof result }>("select public.beneficiary_dashboard_data('Daycare', 'Active', 'female', 'Metro Care Hospital A') as beneficiary_dashboard_data");
+    const filtered = await pg.query<{ beneficiary_dashboard_data: typeof result }>("select public.beneficiary_dashboard_data('Daycare', 'Active', 'female', 'Metro Care Hospital A', null) as beneficiary_dashboard_data");
     assert.equal(filtered.rows[0].beneficiary_dashboard_data.summary.total_count, 1);
 
     await pg.exec("set role anon");

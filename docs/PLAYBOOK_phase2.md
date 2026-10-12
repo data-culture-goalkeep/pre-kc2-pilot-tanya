@@ -2,9 +2,9 @@
 
 ## What Phase 2 adds
 
-The Beneficiaries dashboard now has shared filters, three score cards, six charts, and a paged records drawer. Daycare Attendance adds month, program, and beneficiary filters; attendance summaries; attendance and quarterly charts; and manual entry of one monthly row. Hospital Sessions adds month and hospital filters, session charts, and one-session entry for an existing hospital child or a newly assigned `H-####` ID. Assessments adds test, Pre/Post, and month filters with database-side response distributions and a form for one new assessment.
+The Beneficiaries dashboard has program, status, gender, hospital, and financial-year filters; the financial year is derived from `registration_date`. Daycare Attendance uses financial year then month filters and is fixed to the Daycare program. Hospital Sessions uses financial year then month filters derived from `session_date`. Assessments uses test, Pre/Post, financial-year, and month filters; month results are scoped to the selected financial year based on `assessment_date`.
 
-All pages put filters first, then score cards, then charts. Each chart offers add and chart CSV controls. Records live in a separate drawer with search, pagination, current filters, and CSV export. Reads and writes use the server-side Supabase client. PostgreSQL functions group chart data before it reaches the page; only one 20-row records page is fetched into the drawer at a time. The pages use the existing brand pink, blue, and purple palette. New-entry success uses the “Entry saved successfully” toast for three seconds.
+All pages put filters first, then score cards, then charts. Each chart has an add button; CSV export is inside the records drawer. Daycare Attendance shows the editable monthly grid below the charts. Records in the drawer support search, pagination, current filters, and CSV export. Reads and writes use the server-side Supabase client. PostgreSQL functions group chart data before it reaches the page; only one 20-row records page is fetched into the drawer at a time. The pages use the existing brand pink, blue, and purple palette. New-entry success uses the “Entry saved successfully” toast for three seconds.
 
 The new dashboard access policies are explicitly marked `TEST ONLY - tighten before real data`. They allow only reads and inserts, require manual-entry provenance on inserts, and provide no edit or delete flow. Hospital children remain separate from beneficiaries.
 
@@ -36,8 +36,11 @@ After reviewing each PR and confirming the project contains dummy data, apply mi
 4. `20261004170000_daycare_attendance_dashboard.sql` for Daycare Attendance policies and database aggregates.
 5. `20261004180000_hospital_sessions_dashboard.sql` for hospital policies, next H-ID allocation, session insert, records view, and aggregates.
 6. `20261004190000_assessments_dashboard.sql` for assessment policies, records view, and response aggregates.
+7. `20261005100000_attendance_grid_assessment_picker.sql` for the attendance grid, assessment picker, P/A/H/NA values, and insert/update test policies.
+8. `20261012090000_hospital_financial_year_filter.sql` for date-derived April-to-March hospital filtering.
+9. `20261012101500_dashboard_financial_year_filters.sql` for registration-date Beneficiaries filtering and date-scoped Assessments filtering.
 
-The schema migrations are already part of the repository's original setup. The migrations from item 2 onward are the pending Phase 1/2 changes in these PRs. Do not apply them to a real-data project: the policies intentionally permit unauthenticated test access.
+The test project currently records migrations through `attendance_grid_assessment_picker` (version `20261005034800` in hosted migration history). The Hospital financial-year migration and dashboard financial-year migration are pending review/application. Do not apply test-only policies to a real-data project: they intentionally permit unauthenticated test access.
 
 ## Gotchas
 
@@ -46,7 +49,8 @@ The schema migrations are already part of the repository's original setup. The m
 - One earlier Vercel build failed because `src/types/database.ts` was corrupted as a binary file. Restore it as plain UTF-8 TypeScript and rerun `npm run typecheck` and `npm run build` if that message appears.
 - Preview deployments may sit behind Vercel sign-in. A working deployment URL does not guarantee the intended reviewer can open it. Do not ask reviewers to enter Google credentials into the application.
 - Synthetic PGlite tests cover migration SQL without contacting Supabase. A passing local check is not evidence that a hosted migration was applied.
-- The Daycare Attendance denominator is calendar days in the month minus days marked `NA`; the financial year is used to determine leap-year February.
+- The Daycare Attendance denominator is calendar days in the month minus days marked `H` and `NA`; the financial year is used to determine leap-year February. The page only queries Daycare beneficiaries.
+- Selecting a month on Assessments always applies the chosen financial-year date range, so March or another month is not silently combined across every year.
 - Manual inserts use `source_file = 'Happy Feet Dashboard'`, `source_sheet = 'Manual Entry'`, and a positive `source_row` generated in application code. Confirm this convention before importing or reconciling these entries against a source sheet.
 
 ## Open PM decisions before real data

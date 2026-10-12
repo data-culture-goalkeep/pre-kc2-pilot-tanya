@@ -887,11 +887,11 @@ export type Database = {
     }
     Views: {
       hospital_sessions_records: {
-        Row: { child_name: string | null; hospital_child_id: string | null; hospital_name: Database["public"]["Enums"]["hospital_enum"] | null; hospital_session_feedback_id: string | null; month: string | null; session_date: string | null; ward: Database["public"]["Enums"]["ward_enum"] | null }
+        Row: { child_name: string | null; financial_year: string | null; hospital_child_id: string | null; hospital_name: Database["public"]["Enums"]["hospital_enum"] | null; hospital_session_feedback_id: string | null; month: string | null; session_date: string | null; ward: Database["public"]["Enums"]["ward_enum"] | null }
         Relationships: []
       }
       assessments_records: {
-        Row: { test_type: string | null; phase: string | null; record_id: string | null; beneficiary_id: string | null; name_of_child: string | null; assessment_date: string | null; month: string | null; notes: string | null }
+        Row: { test_type: string | null; phase: string | null; record_id: string | null; beneficiary_id: string | null; name_of_child: string | null; assessment_date: string | null; month: string | null; financial_year: string | null; notes: string | null }
         Relationships: []
       }
     }
@@ -902,26 +902,37 @@ export type Database = {
           p_hospital?: Database["public"]["Enums"]["hospital_enum"] | null
           p_program?: Database["public"]["Enums"]["program_enum"] | null
           p_status?: Database["public"]["Enums"]["status_enum"] | null
+          p_financial_year?: string | null
         }
         Returns: Json
       }
       daycare_attendance_dashboard_data: {
         Args: {
           p_beneficiary?: string | null
+          p_financial_year?: string | null
           p_month?: Database["public"]["Enums"]["month_enum"] | null
           p_program?: Database["public"]["Enums"]["program_enum"] | null
         }
         Returns: Json
       }
+      daycare_attendance_grid_data: {
+        Args: { p_financial_year: string; p_month: Database["public"]["Enums"]["month_enum"]; p_program?: Database["public"]["Enums"]["program_enum"] }
+        Returns: Json
+      }
+      save_daycare_attendance_grid: {
+        Args: { p_financial_year: string; p_month: Database["public"]["Enums"]["month_enum"]; p_program: Database["public"]["Enums"]["program_enum"]; p_rows: Json }
+        Returns: number
+      }
       hospital_sessions_dashboard_data: {
         Args: {
+          p_financial_year?: string | null
           p_hospital?: Database["public"]["Enums"]["hospital_enum"] | null
           p_month?: Database["public"]["Enums"]["month_enum"] | null
         }
         Returns: Json
       }
       assessments_dashboard_data: {
-        Args: { p_test?: string | null; p_phase?: string | null; p_month?: Database["public"]["Enums"]["month_enum"] | null }
+        Args: { p_test?: string | null; p_phase?: string | null; p_month?: Database["public"]["Enums"]["month_enum"] | null; p_financial_year?: string | null }
         Returns: Json
       }
       insert_hospital_session_entry: {
@@ -932,7 +943,7 @@ export type Database = {
     }
     Enums: {
       assessment_test_type_enum: "Pre" | "Post"
-      attendance_code_enum: "P" | "NA"
+      attendance_code_enum: "P" | "A" | "H" | "NA"
       contact_type_enum: "Call" | "Visit"
       hospital_enum:
         | "Metro Care Hospital A"
@@ -1089,7 +1100,7 @@ export const Constants = {
   public: {
     Enums: {
       assessment_test_type_enum: ["Pre", "Post"],
-      attendance_code_enum: ["P", "NA"],
+      attendance_code_enum: ["P", "A", "H", "NA"],
       contact_type_enum: ["Call", "Visit"],
       hospital_enum: [
         "Metro Care Hospital A",
