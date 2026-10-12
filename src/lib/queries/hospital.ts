@@ -18,7 +18,7 @@ async function readData(filters: HospitalFilters): Promise<HospitalDashboardData
     p_hospital: HOSPITAL_FILTERS.includes(filters.hospital as typeof HOSPITAL_FILTERS[number]) ? filters.hospital as Database["public"]["Enums"]["hospital_enum"] : null,
     p_financial_year: isFinancialYear(filters.financial_year) ? filters.financial_year : null,
   });
-  if (error || !data) throw new Error("Could not load Hospital Sessions analytics. Apply the Hospital Sessions migration and verify the test access policy.");
+  if (error || !data) throw new Error("Could not load Hospital Sessions analytics. Verify Supabase access and apply migration 20261012090000_hospital_financial_year_filter if it is missing.");
   return data as unknown as HospitalDashboardData;
 }
 

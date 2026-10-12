@@ -17,7 +17,7 @@ async function read(filters: AssessmentFilters): Promise<AssessmentDashboardData
     p_month: MONTHS.includes(filters.month as typeof MONTHS[number]) ? filters.month as Database["public"]["Enums"]["month_enum"] : null,
     p_financial_year: financialYearDateRange(filters.financial_year) ? filters.financial_year : null,
   });
-  if (error || !data) throw new Error("Could not load assessment analytics. Apply the Assessments test migration.");
+  if (error || !data) throw new Error("Could not load assessment analytics. Verify Supabase access and apply migration 20261012101500_dashboard_financial_year_filters if it is missing.");
   return data as unknown as AssessmentDashboardData;
 }
 const cached = unstable_cache((filters: AssessmentFilters) => read(filters), ["assessment-dashboard-v2"], { revalidate: DATA_REVALIDATE_SECONDS, tags: ["assessments"] });

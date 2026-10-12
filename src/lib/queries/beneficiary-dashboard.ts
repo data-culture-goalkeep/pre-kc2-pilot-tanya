@@ -22,7 +22,7 @@ async function readDashboardData(filters: Omit<BeneficiaryFilters, "search"> = {
     p_financial_year: financialYearDateRange(filters.financial_year) ? filters.financial_year : null,
   });
   if (error || !data) {
-    throw new Error("Could not load beneficiary chart data. Apply the dashboard aggregation migration and check the Supabase connection.");
+    throw new Error("Could not load beneficiary chart data. Verify Supabase access and apply migration 20261012101500_dashboard_financial_year_filters if it is missing.");
   }
   return data as unknown as BeneficiaryDashboardResult;
 }
