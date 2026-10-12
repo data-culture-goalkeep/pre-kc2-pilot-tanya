@@ -7,7 +7,7 @@ import type { Database } from "@/types/database";
 
 export type HospitalSummary = { total_children: number; total_sessions: number; sessions_this_month: number };
 export type HospitalChartRow = { chart_name: string; label: string; value: number; sort_order: number; series: string | null };
-export type HospitalDashboardData = { summary: HospitalSummary; charts: HospitalChartRow[] };
+export type HospitalDashboardData = { summary: HospitalSummary; charts: HospitalChartRow[]; financial_years: string[] };
 const TAG = "hospital-sessions";
 
 async function readData(filters: HospitalFilters): Promise<HospitalDashboardData> {
@@ -15,6 +15,7 @@ async function readData(filters: HospitalFilters): Promise<HospitalDashboardData
   const { data, error } = await client.rpc("hospital_sessions_dashboard_data", {
     p_month: MONTHS.includes(filters.month as typeof MONTHS[number]) ? filters.month as Database["public"]["Enums"]["month_enum"] : null,
     p_hospital: HOSPITAL_FILTERS.includes(filters.hospital as typeof HOSPITAL_FILTERS[number]) ? filters.hospital as Database["public"]["Enums"]["hospital_enum"] : null,
+    p_financial_year: /^\d{4}-\d{2}$/.test(filters.financial_year) ? filters.financial_year : null,
   });
   if (error || !data) throw new Error("Could not load Hospital Sessions analytics. Apply the Hospital Sessions migration and verify the test access policy.");
   return data as unknown as HospitalDashboardData;
@@ -28,6 +29,7 @@ export async function getHospitalRecords(filters: HospitalFilters, search: strin
   const safe = search.trim().slice(0,100).replace(/[(),%_"\\]/g," ");
   const build = (targetPage: number) => {
     let query = client.from("hospital_sessions_records").select("hospital_session_feedback_id,hospital_child_id,child_name,session_date,hospital_name,ward", { count: "exact" });
+    if (/^\d{4}-\d{2}$/.test(filters.financial_year)) query = query.eq("financial_year", filters.financial_year);
     if (MONTHS.includes(filters.month as typeof MONTHS[number])) query = query.eq("month", filters.month);
     if (HOSPITAL_FILTERS.includes(filters.hospital as typeof HOSPITAL_FILTERS[number])) query = query.eq("hospital_name", filters.hospital as Database["public"]["Enums"]["hospital_enum"]);
     if (safe) query = query.or(`hospital_child_id.ilike.%${safe}%,child_name.ilike.%${safe}%`);
@@ -46,6 +48,7 @@ export async function getHospitalRecords(filters: HospitalFilters, search: strin
 export async function getAllHospitalRecords(filters: HospitalFilters) {
   const client = createServerSupabaseClient();
   let query = client.from("hospital_sessions_records").select("hospital_child_id,child_name,session_date,hospital_name,ward");
+  if (/^\d{4}-\d{2}$/.test(filters.financial_year)) query = query.eq("financial_year", filters.financial_year);
   if (MONTHS.includes(filters.month as typeof MONTHS[number])) query = query.eq("month", filters.month);
   if (HOSPITAL_FILTERS.includes(filters.hospital as typeof HOSPITAL_FILTERS[number])) query = query.eq("hospital_name", filters.hospital as Database["public"]["Enums"]["hospital_enum"]);
   const { data, error } = await query.order("session_date", { ascending: false });

@@ -6,7 +6,7 @@ import { DashboardWorkspace, type DashboardChart, type DashboardFilter } from "@
 import { HospitalSessionForm } from "@/components/forms/hospital-session-form";
 import { SaveToast } from "@/components/save-toast";
 import { loadHospitalRecords } from "@/lib/actions/hospital";
-import { HOSPITAL_FILTERS, MONTHS, type HospitalFilters } from "@/lib/hospital";
+import { HOSPITAL_FILTERS, hospitalMonthOptions, currentIndiaFinancialYear, type HospitalFilters } from "@/lib/hospital";
 import type { HospitalChartRow, HospitalSummary } from "@/lib/queries/hospital";
 
 const CHARTS: Array<{name:string;title:string;kind:DashboardChart["kind"]}>=[
@@ -16,10 +16,11 @@ const CHARTS: Array<{name:string;title:string;kind:DashboardChart["kind"]}>=[
 ];
 const COLUMNS=[{key:"hospital_child_id",label:"Hospital child ID"},{key:"child_name",label:"Name"},{key:"session_date",label:"Session date"},{key:"hospital_name",label:"Hospital"},{key:"ward",label:"Ward"}];
 
-export function HospitalSessionsView({filters,summary,charts,chartError}:{filters:HospitalFilters;summary:HospitalSummary|null;charts:HospitalChartRow[];chartError?:string}){
+export function HospitalSessionsView({filters,summary,charts,financialYears,chartError}:{filters:HospitalFilters;summary:HospitalSummary|null;charts:HospitalChartRow[];financialYears:string[];chartError?:string}){
   const router=useRouter(); const [,setBusy]=useState(false); const [savedAt,setSavedAt]=useState(0);
   const chartData=CHARTS.map((chart)=>({...chart,rows:charts.filter((row)=>row.chart_name===chart.name).map((row)=>({label:row.label,value:Number(row.value)})),exportUrl:`/hospital/charts/export?chart=${chart.name}`}));
-  const filterItems:DashboardFilter[]=[{key:"month",label:"Month",value:filters.month,options:MONTHS},{key:"hospital",label:"Hospital",value:filters.hospital,options:HOSPITAL_FILTERS}];
+  const fiscalYears=[...new Set([...financialYears,currentIndiaFinancialYear()])].sort().reverse();
+  const filterItems:DashboardFilter[]=[{key:"financial_year",label:"Financial year",value:filters.financial_year,options:fiscalYears},{key:"month",label:"Month",value:filters.month,options:hospitalMonthOptions(filters.financial_year)},{key:"hospital",label:"Hospital",value:filters.hospital,options:HOSPITAL_FILTERS}];
   return <><DashboardWorkspace title="Hospital Sessions" description="Feedback sessions for the separate hospital-child population." path="/hospital" filters={filterItems}
     scores={[{label:"Total children",value:summary?.total_children??"—",tone:"pink"},{label:"Total sessions",value:summary?.total_sessions??"—",tone:"blue"},{label:"Sessions this month",value:summary?.sessions_this_month??"—",tone:"purple"}]}
     charts={chartData} addLabel="Session" addDescription="Add a session for an existing hospital child or register a new H-ID child."

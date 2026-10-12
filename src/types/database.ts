@@ -887,7 +887,7 @@ export type Database = {
     }
     Views: {
       hospital_sessions_records: {
-        Row: { child_name: string | null; hospital_child_id: string | null; hospital_name: Database["public"]["Enums"]["hospital_enum"] | null; hospital_session_feedback_id: string | null; month: string | null; session_date: string | null; ward: Database["public"]["Enums"]["ward_enum"] | null }
+        Row: { child_name: string | null; financial_year: string | null; hospital_child_id: string | null; hospital_name: Database["public"]["Enums"]["hospital_enum"] | null; hospital_session_feedback_id: string | null; month: string | null; session_date: string | null; ward: Database["public"]["Enums"]["ward_enum"] | null }
         Relationships: []
       }
       assessments_records: {
@@ -924,6 +924,7 @@ export type Database = {
       }
       hospital_sessions_dashboard_data: {
         Args: {
+          p_financial_year?: string | null
           p_hospital?: Database["public"]["Enums"]["hospital_enum"] | null
           p_month?: Database["public"]["Enums"]["month_enum"] | null
         }
