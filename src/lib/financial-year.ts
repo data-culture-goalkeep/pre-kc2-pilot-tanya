@@ -1,7 +1,7 @@
 export type FinancialYearRange = { start: string; end: string };
 
 export function financialYearDateRange(value: string): FinancialYearRange | null {
-  if (!/^\\d{4}-\\d{2}$/.test(value)) return null;
+  if (!/^\d{4}-\d{2}$/.test(value)) return null;
   const startYear = Number(value.slice(0, 4));
   const expectedEnd = String((startYear + 1) % 100).padStart(2, "0");
   if (value.slice(5) !== expectedEnd) return null;
