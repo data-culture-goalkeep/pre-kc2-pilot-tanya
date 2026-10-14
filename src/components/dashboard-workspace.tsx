@@ -59,20 +59,22 @@ export function DashboardWorkspace(props: Props) {
   const columns = props.recordColumns as Array<{ key: keyof DashboardRecord; label: string }>;
   const rowKey = props.recordKey as keyof DashboardRecord;
   return <div className="space-y-5">
-    <div className="flex flex-wrap items-end justify-between gap-3">
-      <div><h1 className="text-xl font-semibold">{props.title}</h1><p className="mt-2 text-muted-foreground">{props.description}</p></div>
-      <button type="button" onClick={() => { setRecordsOpen(true); setPage(1); }} className="min-h-11 rounded-lg border border-border bg-card px-4 font-medium hover:bg-brand-light-blue/30">View records</button>
-    </div>
-
-    <section aria-label={`${props.title} filters`} className="rounded-xl border border-border bg-card p-4">
-      <div className="mb-3 flex items-center justify-between gap-2"><h2 className="text-sm font-semibold">Filters</h2><button type="button" onClick={() => startTransition(() => router.replace(`${props.path}?clear=all`))} disabled={!queryString || isNavigating} className="min-h-9 rounded-lg px-3 text-sm font-medium text-brand-purple underline-offset-4 hover:underline disabled:opacity-40">Clear filters</button></div>
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {props.filters.map((filter) => <label key={filter.key} className="text-xs font-medium text-muted-foreground">{filter.label}
-          {filter.type === "text" ? <input value={filter.value} onChange={(event) => updateFilter(filter.key, event.target.value)} placeholder={filter.placeholder} className="mt-2 min-h-11 w-full rounded-lg border border-input bg-card px-3 text-sm text-foreground" />
-            : <select value={filter.value} onChange={(event) => updateFilter(filter.key, event.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-input bg-card px-3 text-sm text-foreground">{filter.allowAll === false ? null : <option value="">All {filter.label.toLowerCase()}</option>}{filter.options?.map((option) => typeof option === "string" ? <option key={option} value={option}>{option}</option> : <option key={option.value} value={option.value}>{option.label}</option>)}</select>}
-        </label>)}
+    <div className="sticky top-0 z-40 -mx-4 space-y-4 border-b border-border bg-background px-4 pb-3 pt-3 shadow-sm sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div><h1 className="text-xl font-semibold">{props.title}</h1><p className="mt-2 text-muted-foreground">{props.description}</p></div>
+        <button type="button" onClick={() => { setRecordsOpen(true); setPage(1); }} className="min-h-11 rounded-lg border border-border bg-card px-4 font-medium hover:bg-brand-light-blue/30">View records</button>
       </div>
-    </section>
+
+      <section aria-label={`${props.title} filters`} className="rounded-xl border border-border bg-card p-4">
+        <div className="mb-3 flex items-center justify-between gap-2"><h2 className="text-sm font-semibold">Filters</h2><button type="button" onClick={() => startTransition(() => router.replace(`${props.path}?clear=all`))} disabled={!queryString || isNavigating} className="min-h-9 rounded-lg px-3 text-sm font-medium text-brand-purple underline-offset-4 hover:underline disabled:opacity-40">Clear filters</button></div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {props.filters.map((filter) => <label key={filter.key} className="text-xs font-medium text-muted-foreground">{filter.label}
+            {filter.type === "text" ? <input value={filter.value} onChange={(event) => updateFilter(filter.key, event.target.value)} placeholder={filter.placeholder} className="mt-2 min-h-11 w-full rounded-lg border border-input bg-card px-3 text-sm text-foreground" />
+              : <select value={filter.value} onChange={(event) => updateFilter(filter.key, event.target.value)} className="mt-2 min-h-11 w-full rounded-lg border border-input bg-card px-3 text-sm text-foreground">{filter.allowAll === false ? null : <option value="">All {filter.label.toLowerCase()}</option>}{filter.options?.map((option) => typeof option === "string" ? <option key={option} value={option}>{option}</option> : <option key={option.value} value={option.value}>{option.label}</option>)}</select>}
+          </label>)}
+        </div>
+      </section>
+    </div>
 
     <section aria-label={`${props.title} summary`} className="grid gap-3 sm:grid-cols-3">
       {props.scores.map((score) => <div key={score.label} className={`rounded-xl p-5 ${TONES[score.tone]}`}><p className="text-sm font-medium">{score.label}</p><p className="mt-3 text-3xl font-semibold tabular-nums">{typeof score.value === "number" ? score.value.toLocaleString("en-IN") : score.value}</p></div>)}
