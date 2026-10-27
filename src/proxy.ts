@@ -1,13 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
-import { isAllowedLoginEmail, LOGIN_DOMAIN_ERROR } from "@/lib/auth/allowed-login-domain";
+import { isValidLoginEmail } from "@/lib/auth/allowed-login-domain";
 
 export async function proxy(request: NextRequest) {
   const supabaseUrl = process.env.SUPABASE_URL;
   const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY;
-  const allowedDomain = process.env.ALLOWED_LOGIN_DOMAIN;
 
-  if (!supabaseUrl || !publishableKey || !allowedDomain) {
+  if (!supabaseUrl || !publishableKey) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("message", "config");
     return NextResponse.redirect(loginUrl);
@@ -27,7 +26,7 @@ export async function proxy(request: NextRequest) {
   });
 
   const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !isAllowedLoginEmail(user?.email, allowedDomain)) {
+  if (error || !user || !isValidLoginEmail(user.email)) {
     if (user) {
       try {
         await supabase.auth.signOut();
@@ -37,7 +36,6 @@ export async function proxy(request: NextRequest) {
     }
 
     const loginUrl = new URL("/login", request.url);
-    if (user) loginUrl.searchParams.set("message", LOGIN_DOMAIN_ERROR);
     const redirect = NextResponse.redirect(loginUrl);
     for (const cookie of response.cookies.getAll()) redirect.cookies.set(cookie);
     return redirect;
