@@ -1,15 +1,21 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { isAllowedLoginEmail } from "../src/lib/auth/allowed-login-domain";
+import { isValidLoginEmail } from "../src/lib/auth/allowed-login-domain";
 
-test("allows goalkeep.net email addresses", () => {
-  assert.equal(isAllowedLoginEmail("tanya@goalkeep.net", "goalkeep.net"), true);
+test("allows Goalkeep email addresses", () => {
+  assert.equal(isValidLoginEmail("tanya@goalkeep.net"), true);
 });
 
-test("rejects gmail.com email addresses", () => {
-  assert.equal(isAllowedLoginEmail("tanya@gmail.com", "goalkeep.net"), false);
+test("allows invited email addresses from other domains", () => {
+  assert.equal(isValidLoginEmail("tanya@gmail.com"), true);
 });
 
-test("allows uppercase Goalkeep domain addresses", () => {
-  assert.equal(isAllowedLoginEmail("tanya@GOALKEEP.NET", "goalkeep.net"), true);
+test("accepts uppercase email domains", () => {
+  assert.equal(isValidLoginEmail("tanya@GOALKEEP.NET"), true);
+});
+
+test("rejects malformed email addresses", () => {
+  assert.equal(isValidLoginEmail("not-an-email"), false);
+  assert.equal(isValidLoginEmail("tanya@"), false);
+  assert.equal(isValidLoginEmail(null), false);
 });
