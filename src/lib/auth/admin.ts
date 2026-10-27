@@ -4,6 +4,8 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
+const ADMIN_EMAIL = "tanya@goalkeep.net";
+
 export class AdminAccessError extends Error {
   constructor(readonly status: 401 | 403 | 503) {
     super("Admin access is unavailable.");
@@ -11,17 +13,8 @@ export class AdminAccessError extends Error {
   }
 }
 
-function configuredAdminEmails() {
-  return new Set(
-    (process.env.ADMIN_EMAILS ?? "")
-      .split(",")
-      .map((email) => email.trim().toLowerCase())
-      .filter(Boolean),
-  );
-}
-
 export function isAdminEmail(email: string | undefined | null) {
-  return Boolean(email && configuredAdminEmails().has(email.trim().toLowerCase()));
+  return Boolean(email && email.trim().toLowerCase() === ADMIN_EMAIL);
 }
 
 async function getAuthenticatedUser() {
