@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
-import { isAllowedLoginEmail, LOGIN_DOMAIN_ERROR } from "@/lib/auth/allowed-login-domain";
+import { isValidLoginEmail } from "@/lib/auth/allowed-login-domain";
 
 function redirectWithCookies(response: NextResponse, cookieResponse: NextResponse) {
   for (const cookie of cookieResponse.cookies.getAll()) response.cookies.set(cookie);
@@ -17,7 +17,6 @@ export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code");
   const supabaseUrl = process.env.SUPABASE_URL;
   const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY;
-  const allowedDomain = process.env.ALLOWED_LOGIN_DOMAIN;
 
   if (!code || !supabaseUrl || !publishableKey) {
     return loginRedirect(request, "callback");
@@ -42,13 +41,13 @@ export async function GET(request: NextRequest) {
   }
 
   const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError || !isAllowedLoginEmail(user?.email, allowedDomain)) {
+  if (userError || !isValidLoginEmail(user?.email)) {
     try {
       await supabase.auth.signOut();
     } catch {
       // Still redirect away from protected pages if the Auth service is unavailable.
     }
-    return redirectWithCookies(loginRedirect(request, LOGIN_DOMAIN_ERROR), cookieResponse);
+    return redirectWithCookies(loginRedirect(request, "callback"), cookieResponse);
   }
 
   return redirectWithCookies(NextResponse.redirect(new URL("/", request.url)), cookieResponse);
