@@ -1,5 +1,7 @@
 "use server";
 
+import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
+
 import { randomInt } from "node:crypto";
 import { revalidatePath, updateTag } from "next/cache";
 import { HOSPITAL_FILTERS, HOSPITAL_WARDS, MONTHS, type HospitalFilters } from "@/lib/hospital";
@@ -12,6 +14,7 @@ const MAX_INT = 2_147_483_647;
 function sourceRow() { return randomInt(1, MAX_INT); }
 
 export async function saveHospitalSession(formData: FormData): Promise<{ ok: boolean; error?: string; childId?: string }> {
+  await requireAuthenticatedUser();
   const mode = String(formData.get("child_mode") ?? "existing");
   const existingChildId = String(formData.get("hospital_child_id") ?? "").trim().slice(0,100);
   const newChildName = String(formData.get("child_name") ?? "").trim().slice(0,150);
@@ -46,6 +49,7 @@ export async function saveHospitalSession(formData: FormData): Promise<{ ok: boo
 }
 
 export async function loadHospitalRecords(filters: Record<string,string>, search:string, page:number) {
+  await requireAuthenticatedUser();
   const allowed: HospitalFilters = { financial_year: isFinancialYear(filters.financial_year ?? "") ? filters.financial_year : "", month: MONTHS.includes(filters.month as typeof MONTHS[number]) ? filters.month : "", hospital: HOSPITAL_FILTERS.includes(filters.hospital as typeof HOSPITAL_FILTERS[number]) ? filters.hospital : "" };
   return getHospitalRecords(allowed, search.slice(0,100), Math.max(1,page));
 }

@@ -1,5 +1,7 @@
 "use server";
 
+import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
+
 import { randomInt } from "node:crypto";
 import { revalidatePath, updateTag } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -12,6 +14,7 @@ const DAY_KEYS = Array.from({ length: 31 }, (_, i) => `day_${String(i + 1).padSt
 const fiscalYearOk = isFinancialYear;
 
 export async function saveDaycareAttendanceGrid(filters: DaycareFilters, changes: Array<{ beneficiary_id: string; values: Record<string, string> }>): Promise<{ ok: boolean; error?: string }> {
+  await requireAuthenticatedUser();
   if (!MONTHS.includes(filters.month as typeof MONTHS[number]) || !fiscalYearOk(filters.financial_year) || !ATTENDANCE_PROGRAMS.includes(filters.program as typeof ATTENDANCE_PROGRAMS[number])) return { ok: false, error: "Choose a valid month, financial year, and program." };
   if (!Array.isArray(changes) || changes.length > 2000) return { ok: false, error: "Too many changed rows to save at once." };
   const seen = new Set<string>();
@@ -59,6 +62,7 @@ export async function saveDaycareAttendance(form: FormData): Promise<{ ok: boole
 }
 
 export async function loadDaycareRecords(filters: Record<string, string>, search: string, page: number) {
+  await requireAuthenticatedUser();
   const { getDaycareRecords } = await import("@/lib/queries/daycare");
   const valid: DaycareFilters = {
     month: MONTHS.includes(filters.month as typeof MONTHS[number]) ? filters.month : "",
