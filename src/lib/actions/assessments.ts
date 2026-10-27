@@ -1,5 +1,7 @@
 "use server";
 
+import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
+
 import { randomInt } from "node:crypto";
 import { revalidatePath, updateTag } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -8,6 +10,7 @@ import { ASSESSMENT_TESTS, ASSESSMENT_PHASES } from "@/lib/assessments";
 export type AssessmentBeneficiary = { beneficiary_id: string; name_of_child: string };
 
 export async function findAssessmentBeneficiaries(search: string): Promise<AssessmentBeneficiary[]> {
+  await requireAuthenticatedUser();
   const term = search.trim().slice(0, 80).replace(/[(),%_\\]/g, " ");
   if (term.length < 2) return [];
   const db = createServerSupabaseClient();
@@ -19,6 +22,7 @@ export async function findAssessmentBeneficiaries(search: string): Promise<Asses
 }
 
 export async function saveAssessment(form: FormData): Promise<{ok:boolean;error?:string}> {
+  await requireAuthenticatedUser();
   const beneficiary_id=String(form.get("beneficiary_id")??"").trim().slice(0,100);
   const name_of_child=String(form.get("name_of_child")??"").trim().slice(0,200);
   const test=String(form.get("test_type")??"");
@@ -57,6 +61,7 @@ export async function saveAssessment(form: FormData): Promise<{ok:boolean;error?
 }
 
 export async function loadAssessmentRecords(filters:Record<string,string>,search:string,page:number){
+ await requireAuthenticatedUser();
  const {getAssessmentRecords}=await import("@/lib/queries/assessments");
  const {ASSESSMENT_TESTS,ASSESSMENT_PHASES,MONTHS}=await import("@/lib/assessments");
  return getAssessmentRecords({test:ASSESSMENT_TESTS.includes(filters.test as typeof ASSESSMENT_TESTS[number])?filters.test:"",phase:ASSESSMENT_PHASES.includes(filters.phase as typeof ASSESSMENT_PHASES[number])?filters.phase:"",month:MONTHS.includes(filters.month as typeof MONTHS[number])?filters.month:"",financial_year:/^\d{4}-\d{2}$/.test(filters.financial_year??"")?filters.financial_year:""},search.slice(0,100),Math.max(1,page));
