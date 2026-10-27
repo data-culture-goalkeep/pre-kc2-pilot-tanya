@@ -8,7 +8,7 @@ import logo from "../../public/happy-feet-home-logo.png";
 import { NAVIGATION } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
-export function Navbar() {
+export function Navbar({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
@@ -48,6 +48,11 @@ export function Navbar() {
                 </li>
               );
             })}
+            {isAdmin ? <li>
+              <Link href="/admin/users" aria-current={pathname.startsWith("/admin/users") ? "page" : undefined} onClick={() => setMenuOpen(false)} className={cn("flex min-h-11 items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors motion-reduce:transition-none", pathname.startsWith("/admin/users") ? "bg-brand-soft-pink text-foreground" : "text-muted-foreground hover:bg-brand-light-blue hover:text-foreground")}>
+                User access
+              </Link>
+            </li> : null}
             {showLogout ? <li>
               <form action="/auth/sign-out" method="post">
                 <button type="submit" onClick={() => setMenuOpen(false)} className="flex min-h-11 items-center rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-brand-light-blue hover:text-foreground motion-reduce:transition-none">
