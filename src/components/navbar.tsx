@@ -12,6 +12,7 @@ export function Navbar() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
+  const showLogout = !pathname.startsWith("/login") && !pathname.startsWith("/reset-password") && !pathname.startsWith("/auth/");
 
   return (
     <header className="border-b border-border bg-card" onKeyDown={(event) => {
@@ -47,6 +48,13 @@ export function Navbar() {
                 </li>
               );
             })}
+            {showLogout ? <li>
+              <form action="/auth/sign-out" method="post">
+                <button type="submit" onClick={() => setMenuOpen(false)} className="flex min-h-11 items-center rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-brand-light-blue hover:text-foreground motion-reduce:transition-none">
+                  Log out
+                </button>
+              </form>
+            </li> : null}
           </ul>
         </nav>
       </div>
