@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
-import { isAllowedLoginEmail, LOGIN_DOMAIN_ERROR, normalizeAllowedLoginDomain } from "@/lib/auth/allowed-login-domain";
+import { isValidLoginEmail } from "@/lib/auth/allowed-login-domain";
 
 type EmailAction = "sign-in" | "reset-password";
 
@@ -13,14 +13,16 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null) as { action?: EmailAction; email?: string; password?: string } | null;
   const email = body?.email?.trim() ?? "";
   const password = body?.password ?? "";
-  const allowedDomain = normalizeAllowedLoginDomain(process.env.ALLOWED_LOGIN_DOMAIN);
   const supabaseUrl = process.env.SUPABASE_URL;
   const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY;
 
-  if (!supabaseUrl || !publishableKey || !allowedDomain) {
+  if (!supabaseUrl || !publishableKey) {
     return NextResponse.json({ message: "Sign-in is not configured. Contact the dashboard administrator." }, { status: 503 });
   }
-  if (!email || (body?.action === "sign-in" && !password)) {
+  if (!isValidLoginEmail(email)) {
+    return NextResponse.json({ message: "Enter a valid email address." }, { status: 400 });
+  }
+  if (body?.action === "sign-in" && !password) {
     return NextResponse.json({ message: "Enter your email and password." }, { status: 400 });
   }
   if (body?.action !== "sign-in" && body?.action !== "reset-password") {
@@ -41,9 +43,6 @@ export async function POST(request: NextRequest) {
   });
 
   if (body.action === "reset-password") {
-    if (!isAllowedLoginEmail(email, allowedDomain)) {
-      return NextResponse.json({ message: LOGIN_DOMAIN_ERROR }, { status: 403 });
-    }
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: new URL("/auth/recovery", request.url).toString(),
     });
@@ -59,7 +58,7 @@ export async function POST(request: NextRequest) {
   }
 
   const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError || !isAllowedLoginEmail(user?.email, allowedDomain)) {
+  if (userError || !isValidLoginEmail(user?.email)) {
     try {
       await supabase.auth.signOut();
     } catch {
@@ -69,7 +68,7 @@ export async function POST(request: NextRequest) {
         // The protected routes still reject this session if local cleanup fails.
       }
     }
-    return withCookies(NextResponse.json({ message: LOGIN_DOMAIN_ERROR }, { status: 403 }), cookieResponse);
+    return withCookies(NextResponse.json({ message: "Could not verify your sign-in. Please try again." }, { status: 403 }), cookieResponse);
   }
 
   return withCookies(NextResponse.json({ redirectTo: "/" }), cookieResponse);
