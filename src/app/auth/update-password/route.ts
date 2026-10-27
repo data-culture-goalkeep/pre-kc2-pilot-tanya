@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
-import { isAllowedLoginEmail, LOGIN_DOMAIN_ERROR, normalizeAllowedLoginDomain } from "@/lib/auth/allowed-login-domain";
+import { isValidLoginEmail } from "@/lib/auth/allowed-login-domain";
 
 function withCookies(response: NextResponse, cookieResponse: NextResponse) {
   for (const cookie of cookieResponse.cookies.getAll()) response.cookies.set(cookie);
@@ -12,8 +12,7 @@ export async function POST(request: NextRequest) {
   const password = body?.password ?? "";
   const supabaseUrl = process.env.SUPABASE_URL;
   const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY;
-  const allowedDomain = normalizeAllowedLoginDomain(process.env.ALLOWED_LOGIN_DOMAIN);
-  if (!supabaseUrl || !publishableKey || !allowedDomain) {
+  if (!supabaseUrl || !publishableKey) {
     return NextResponse.json({ message: "Sign-in is not configured. Contact the dashboard administrator." }, { status: 503 });
   }
   if (password.length < 8) {
@@ -37,7 +36,7 @@ export async function POST(request: NextRequest) {
   if (userError || !user) {
     return withCookies(NextResponse.json({ message: "Your reset link is no longer valid. Request a new one." }, { status: 401 }), cookieResponse);
   }
-  if (!isAllowedLoginEmail(user.email, allowedDomain)) {
+  if (!isValidLoginEmail(user.email)) {
     try {
       await supabase.auth.signOut();
     } catch {
@@ -47,7 +46,7 @@ export async function POST(request: NextRequest) {
         // Protected routes also reject invalid sessions.
       }
     }
-    return withCookies(NextResponse.json({ message: LOGIN_DOMAIN_ERROR }, { status: 403 }), cookieResponse);
+    return withCookies(NextResponse.json({ message: "Could not verify your account. Please sign in again." }, { status: 403 }), cookieResponse);
   }
 
   const { error } = await supabase.auth.updateUser({ password });
