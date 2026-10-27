@@ -3,6 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 function redirectWithCookies(response: NextResponse, cookieResponse: NextResponse) {
   for (const cookie of cookieResponse.cookies.getAll()) response.cookies.set(cookie);
+  for (const header of ["Cache-Control", "Expires", "Pragma"]) {
+    const value = cookieResponse.headers.get(header);
+    if (value) response.headers.set(header, value);
+  }
   return response;
 }
 
