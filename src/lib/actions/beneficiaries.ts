@@ -1,5 +1,7 @@
 "use server";
 
+import { requireAuthenticatedUser } from "@/lib/auth/require-authenticated-user";
+
 import { randomUUID } from "node:crypto";
 import { revalidatePath, updateTag } from "next/cache";
 import { BENEFICIARIES_PATH, type BeneficiaryFilters } from "@/lib/beneficiaries";
@@ -10,6 +12,7 @@ import { getBeneficiaryPage } from "@/lib/queries/beneficiary-dashboard";
 import { validateBeneficiary, type BeneficiarySaveResult } from "@/lib/validation/beneficiary";
 
 export async function saveBeneficiary(formData: FormData): Promise<BeneficiarySaveResult> {
+  await requireAuthenticatedUser();
   const { input, errors } = validateBeneficiary(Object.fromEntries(formData));
   if (Object.keys(errors).length) return { ok: false, error: "Check the highlighted fields.", fieldErrors: errors };
   try {
@@ -24,6 +27,7 @@ export async function saveBeneficiary(formData: FormData): Promise<BeneficiarySa
 }
 
 export async function loadBeneficiaryRecords(filters: Record<string, string>, search: string, page: number) {
+  await requireAuthenticatedUser();
   const allowed: BeneficiaryFilters = {
     search: search.slice(0, 100),
     program: filters.program ?? "",
