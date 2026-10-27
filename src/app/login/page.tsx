@@ -1,10 +1,8 @@
 import { LoginForm } from "./login-form";
-import { LOGIN_DOMAIN_ERROR } from "@/lib/auth/allowed-login-domain";
 
 type LoginSearchParams = Promise<{ message?: string | string[] }>;
 
 const LOGIN_MESSAGES: Record<string, string> = {
-  domain: LOGIN_DOMAIN_ERROR,
   start: "Google sign-in could not be started. Please try again.",
   callback: "Sign-in could not be completed. Please try again.",
   config: "Sign-in is not configured. Contact the dashboard administrator.",
@@ -20,7 +18,7 @@ export default async function LoginPage({ searchParams }: { searchParams: LoginS
       <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Happy Feet Home</p>
       <h1 className="mt-2 text-xl font-semibold">Sign in to your dashboard</h1>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-        Use your invited Goalkeep account to continue.
+        Use your invited account to continue.
       </p>
       <LoginForm message={message} />
     </section>
