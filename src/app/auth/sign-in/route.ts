@@ -1,0 +1,49 @@
+import { createServerClient } from "@supabase/ssr";
+import { NextRequest, NextResponse } from "next/server";
+import { normalizeAllowedLoginDomain } from "@/lib/auth/allowed-login-domain";
+
+function redirectWithCookies(response: NextResponse, cookieResponse: NextResponse) {
+  for (const cookie of cookieResponse.cookies.getAll()) response.cookies.set(cookie);
+  return response;
+}
+
+export async function GET(request: NextRequest) {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY;
+  const allowedDomain = normalizeAllowedLoginDomain(process.env.ALLOWED_LOGIN_DOMAIN);
+
+  if (!supabaseUrl || !publishableKey || !allowedDomain) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("message", "config");
+    return NextResponse.redirect(loginUrl);
+  }
+
+  let cookieResponse = NextResponse.next({ request });
+  const supabase = createServerClient(supabaseUrl, publishableKey, {
+    cookies: {
+      getAll: () => request.cookies.getAll(),
+      setAll(cookiesToSet, headersToSet) {
+        for (const { name, value } of cookiesToSet) request.cookies.set(name, value);
+        cookieResponse = NextResponse.next({ request });
+        for (const cookie of cookiesToSet) cookieResponse.cookies.set(cookie);
+        for (const [name, value] of Object.entries(headersToSet ?? {})) cookieResponse.headers.set(name, value);
+      },
+    },
+  });
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: new URL("/auth/callback", request.url).toString(),
+      queryParams: { hd: allowedDomain },
+    },
+  });
+
+  if (error || !data.url) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("message", "start");
+    return redirectWithCookies(NextResponse.redirect(loginUrl), cookieResponse);
+  }
+
+  return redirectWithCookies(NextResponse.redirect(data.url), cookieResponse);
+}
