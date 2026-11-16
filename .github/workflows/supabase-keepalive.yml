@@ -1,0 +1,46 @@
+name: Supabase keepalive
+
+on:
+  schedule:
+    - cron: '17 */12 * * *' # Every twelve hours, UTC; avoid the top of the hour.
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: supabase-keepalive-ktobhlqfeqdxydppczmm
+  cancel-in-progress: false
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    env:
+      SUPABASE_PROJECT_REF: ktobhlqfeqdxydppczmm
+      SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+    steps:
+      - name: Read the public heartbeat through the project API
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${SUPABASE_PUBLISHABLE_KEY:?Add SUPABASE_PUBLISHABLE_KEY to repository Actions secrets}"
+          if [[ "$SUPABASE_PROJECT_REF" != "ktobhlqfeqdxydppczmm" ]]; then
+            echo "::error::Refusing a different Supabase project."
+            exit 1
+          fi
+
+          response_file="$(mktemp)"
+          trap 'rm -f "$response_file"' EXIT
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --retry 2 --retry-delay 5 --retry-max-time 110 \
+            --request GET \
+            "https://${SUPABASE_PROJECT_REF}.supabase.co/rest/v1/keepalive?select=id&id=eq.1&limit=1" \
+            --header "apikey: ${SUPABASE_PUBLISHABLE_KEY}" \
+            --output "$response_file"
+
+          if ! jq -e 'type == "array" and length == 1 and .[0].id == 1' "$response_file" > /dev/null; then
+            echo "::error::Unexpected database response. Check the project, public key and heartbeat table."
+            exit 1
+          fi
+          echo "Project Data API heartbeat succeeded for the approved test project."
