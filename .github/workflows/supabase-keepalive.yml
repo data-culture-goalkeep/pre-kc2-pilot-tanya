@@ -1,0 +1,48 @@
+name: Supabase keepalive
+
+on:
+  schedule:
+    - cron: '17 */12 * * *' # Every twelve hours, UTC; avoid the top of the hour.
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: supabase-keepalive-ktobhlqfeqdxydppczmm
+  cancel-in-progress: false
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    env:
+      SUPABASE_PROJECT_REF: ktobhlqfeqdxydppczmm
+      SUPABASE_KEEPALIVE_TOKEN: ${{ secrets.SUPABASE_KEEPALIVE_TOKEN }}
+    steps:
+      - name: Run a read-only database query
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${SUPABASE_KEEPALIVE_TOKEN:?Add SUPABASE_KEEPALIVE_TOKEN to repository Actions secrets}"
+          if [[ "$SUPABASE_PROJECT_REF" != "ktobhlqfeqdxydppczmm" ]]; then
+            echo "::error::Refusing a different Supabase project."
+            exit 1
+          fi
+
+          response_file="$(mktemp)"
+          trap 'rm -f "$response_file"' EXIT
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 30 \
+            --retry 2 --retry-delay 5 --retry-max-time 110 \
+            --request POST \
+            "https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_REF}/database/query/read-only" \
+            --header "Authorization: Bearer ${SUPABASE_KEEPALIVE_TOKEN}" \
+            --header "Content-Type: application/json" \
+            --data '{"query":"SELECT 1 AS keepalive FROM pg_catalog.pg_database WHERE datname = current_database();"}' \
+            --output "$response_file"
+
+          if ! jq -e 'type == "array" and length == 1 and .[0].keepalive == 1' "$response_file" > /dev/null; then
+            echo "::error::Unexpected database response. Check the project and scoped token."
+            exit 1
+          fi
+          echo "Read-only database check succeeded for the approved test project."
